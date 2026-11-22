@@ -243,10 +243,10 @@ img{-webkit-user-drag:none}
       <h4>玩法介绍</h4>
       <p>1. 倍率：苹果×5；橘子×10、芒果×15、铃铛×20；西瓜×20、双星×30、77×40、BAR×120。小图案（标 ×3 的格子）只赔 3 倍。</p>
       <p>2. 猜大小：押中后可进入比倍模式，选「1-6」或「8-13」猜点数（1~13），猜对奖金翻倍、猜错归零，可连续猜。</p>
-      <p>3. 划拨：中奖分在「BONUS WIN」区，点「←」收进余额，点「→」从余额划 1 分进中奖区参与猜大小。</p>
+      <p>3. 划拨：点「←」从余额划分进中奖区，金额每次翻倍（10、20、40、80…），可用来猜大小；点「→」把中奖区全部收回余额。</p>
       <p>4. 幸运格：跑灯停在花格（左右各 1 格）时会掷一次幸运值，有机会开出射灯、吃掉、小四喜、小三元、大三元、天女散花、九莲宝灯、开火车、大满贯。</p>
       <p>5. 开始游戏：下注后点 GO 开跑。中奖后点 GO = 收分；再点 GO = 按上次下注续押。重新按任意押注键则清空重押。</p>
-      <p>6. 获取金币：金币（含中奖区）不足 10 时可领 100 金币。</p>
+      <p>6. 金币：每按一次水果键押 10 分；余额低于 100 时自动补 500 分，也可点右上角金币手动设定。</p>
       <h4>免责声明</h4>
       <p>本游戏的 UI 图片来自花果网络科技有限公司（Higoo）开发的花果水果机。本页仅供个人怀旧娱乐，请勿用于任何商业用途。</p>
       <ul>
@@ -419,6 +419,8 @@ function loop(n, on){
 /* ================= 游戏状态 ================= */
 var total = 500;          /* CREDIT（原机默认 500） */
 var roundWin = 0;         /* BONUS WIN */
+var depositNext = 10;     /* 「←」下一次划入中奖区的分数，每划一次翻倍 */
+var BET_STEP = 10;        /* 每按一次押注键押的分数 */
 var bets = {};
 var idx = 0;              /* 当前灯位 */
 var spinning = false;
@@ -434,6 +436,15 @@ function saveScore(){
     if(v !== null && !isNaN(parseInt(v,10))) total = parseInt(v,10);
   }catch(e){}
 })();
+
+/* 余额低于 100 时自动补 500 分 */
+function ensureCredit(quiet){
+  if(total < 100){
+    total += 500;
+    saveScore(); paintDigitLeds();
+    if(!quiet){ play('coin.ogg', 0.8); say('补给 500 分','余额低于 100，自动补分'); }
+  }
+}
 
 /* ================= 游戏界面元素 ================= */
 var ring = $('ring'), leds = $('leds'), msg = $('msg'), showBox = $('show'), jp = $('jp');
@@ -572,12 +583,14 @@ function addBet(i){
   if(spinning) return;
   var b = BETS[i];
   initPoint();
-  if((bets[b.key]||0) >= 99){ say('已达上限','单个符号最多押 99 分'); play('notenough.mp3',0.7); return; }
-  if(total <= 0){ say('金币不足','点右上角金币可设置分数'); play('notenough.mp3',0.7); return; }
-  total--; bets[b.key] = (bets[b.key]||0) + 1;
+  if((bets[b.key]||0) + BET_STEP > 99){ say('已达上限','单个符号最多押 99 分'); play('notenough.mp3',0.7); return; }
+  ensureCredit();
+  if(total < BET_STEP){ say('金币不足','点右上角金币可设置分数'); play('notenough.mp3',0.7); return; }
+  total -= BET_STEP; bets[b.key] = (bets[b.key]||0) + BET_STEP;
   play(b.kbtn, 0.75);
   paintDigitLeds(); paintBets();
   saveScore();
+  ensureCredit();
 }
 
 for(var bi=0; bi<8; bi++){
@@ -599,7 +612,7 @@ for(var bi=0; bi<8; bi++){
       if(!spinning) bt.querySelector('img').src='img/b_'+bk+'_02.png'+V;
       holdT = setTimeout(function(){
         held = true;
-        repT = setInterval(function(){ addBet(i); if(bets[bk]>=99) clearInterval(repT); }, 110);
+        repT = setInterval(function(){ addBet(i); if((bets[bk]||0) + BET_STEP > 99) clearInterval(repT); }, 110);
       }, 420);
     });
     function up(){
@@ -687,6 +700,7 @@ function spin(){
     if(t > total){ say('金币不足','点主菜单可领取金币'); play('notenough.mp3',0.75); return; }
     total -= t;
     saveScore();
+    ensureCredit(true);
   }else{
     isContinueBet = true;
   }
@@ -880,21 +894,28 @@ function act(k){
     return;
   }
 
-  if(k === 'left'){                /* 收分 */
+  if(k === 'left'){                /* 按钮画的是「→」：中奖区全部收回余额 */
     play('k_go.mp3', 0.7);
+    if(roundWin <= 0){ say('中奖区是空的','先按「←」划入，或押中后收分'); return; }
     collect();
     return;
   }
 
-  if(k === 'right'){               /* 从余额划 1 分到中奖区 */
+  if(k === 'right'){               /* 按钮画的是「←」：从余额划入中奖区，金额每次翻倍 */
     play('k_go.mp3', 0.7);
-    if(total > 0){ total--; roundWin++; saveScore(); paintDigitLeds(); say('划拨 1 分','中奖区 '+roundWin+' 分，可继续猜大小'); }
-    else { say('金币不足','点主菜单可领取金币'); play('notenough.mp3',0.7); }
+    ensureCredit();
+    var amt = Math.min(depositNext, total);
+    if(amt <= 0){ say('金币不足','点主菜单可领取金币'); play('notenough.mp3',0.7); return; }
+    total -= amt; roundWin += amt;
+    depositNext = amt * 2;
+    saveScore(); paintDigitLeds();
+    say('划入 '+amt+' 分','中奖区 '+roundWin+' 分 · 下次划入 '+depositNext+' 分');
+    ensureCredit();
     return;
   }
 
   if(k === 'big' || k === 'small'){
-    if(roundWin <= 0){ say('没有可猜的奖金','先中奖，或用「→」从余额划分'); play('notenough.mp3',0.7); return; }
+    if(roundWin <= 0){ say('没有可猜的奖金','先中奖，或用「←」从余额划入'); play('notenough.mp3',0.7); return; }
     var pt = Math.floor(Math.random()*13) + 1;     /* GameRule.getPoints() */
     setNum(ledRnd, pt);
     var ok = (k === 'big') ? (pt > 6) : (pt < 7);
@@ -905,6 +926,7 @@ function act(k){
       say('猜中！翻倍 +'+roundWin, '点数 '+pt+' · '+(k==='big'?'7-13 大':'1-6 小'));
     }else{
       roundWin = 0;
+      depositNext = 10;            /* 归零后重新从 10 开始 */
       play('c_eat.mp3', 0.9);
       showPic(1, 1200);
       say('猜错，归零', '点数 '+pt+' · '+(k==='big'?'7-13 大':'1-6 小'));
@@ -927,6 +949,7 @@ function act(k){
     if(add === 0){ say('已押满','每个符号都到 99 分上限了'); play('notenough.mp3',0.7); return; }
     total -= add;
     saveScore(); paintDigitLeds(); paintBets();
+    ensureCredit();
     say('全押 '+add+' 分', add === 80 ? '每个符号 +10 分' : '余额内按上限押满');
     return;
   }
@@ -936,6 +959,7 @@ function collect(){
   if(roundWin > 0){
     var w = roundWin;
     total += w; roundWin = 0;
+    depositNext = 10;              /* 收回后，划入金额从 10 重新开始 */
     play('coin.ogg', 0.85);
     saveScore(); paintDigitLeds();
     say('收分 +'+w, '已计入金币');
@@ -1177,6 +1201,7 @@ setTimeout(fit, 120);
 window.addEventListener('load', function(){ fit(); setTimeout(fit, 120); });
 paintDigitLeds(); paintBets(); paintRing();
 setNum(ledRnd, 0);
+ensureCredit(true);
 })();
 </script>
 </body>
