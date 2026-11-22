@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>字趣 · 汉字合体与添笔</title>
+<meta name="theme-color" content="#f6f1e6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="字趣">
+<meta name="description" content="两个汉字合体成新字，或给汉字添一笔变新字。手机也能玩的汉字小游戏，含字库图鉴。">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23b93b2b'/%3E%3Ctext x='32' y='46' font-size='38' text-anchor='middle' fill='%23fff8ee' font-family='serif'%3E字%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    --paper:#f6f1e6;
+    --paper-2:#fffdf8;
+    --ink:#201e1a;
+    --ink-2:#4c4740;
+    --muted:#8d857a;
+    --line:rgba(32,30,26,.13);
+    --line-2:rgba(32,30,26,.07);
+    --red:#b93b2b;
+    --red-soft:#f6e3de;
+    --green:#2f6b58;
+    --green-soft:#e4eee9;
+    --gold:#b08c3f;
+    --font-ui:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+    --font-han:"Songti SC","Source Han Serif SC","Noto Serif CJK SC","SimSun","Kaiti SC",serif;
+    --shadow:0 12px 28px -20px rgba(62,45,20,.55);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;min-height:100dvh;color:var(--ink);font-family:var(--font-ui);
+    background:
+      radial-gradient(1100px 620px at 18% -12%, #fffcf3 0%, rgba(255,252,243,0) 62%),
+      radial-gradient(900px 520px at 92% 108%, #efe4cd 0%, rgba(239,228,205,0) 65%),
+      var(--paper);
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:contain;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(120,100,70,.05) 0 1px, transparent 1px 4px),
+      repeating-linear-gradient(90deg, rgba(120,100,70,.04) 0 1px, transparent 1px 4px);
+  }
+  .app{
+    position:relative;z-index:1;max-width:520px;margin:0 auto;
+    padding:calc(env(safe-area-inset-top) + 16px) 20px calc(env(safe-area-inset-bottom) + 18px);
+    min-height:100dvh;display:flex;flex-direction:column;
+  }
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+  button:disabled{cursor:default}
+  h1,h2,h3,p{margin:0}
+
+  /* ---------- 通用 ---------- */
+  .pill{
+    font-size:12px;letter-spacing:.06em;color:var(--ink-2);
+    border:1px solid var(--line);border-radius:999px;padding:6px 11px;background:rgba(255,253,248,.7);
+  }
+  .pill:active{transform:scale(.97)}
+  .primary{
+    width:100%;height:52px;border-radius:15px;background:var(--ink);color:#fdfaf2;
+    font-size:16px;letter-spacing:.14em;font-weight:500;
+    box-shadow:0 14px 26px -18px rgba(32,30,26,.9);
+    transition:transform .12s ease,opacity .2s;
+  }
+  .primary:active{transform:translateY(1px) scale(.995)}
+  .primary:disabled{opacity:.32;box-shadow:none}
+  .ghost{
+    width:100%;height:50px;border-radius:15px;border:1px solid var(--line);
+    background:rgba(255,253,248,.6);font-size:15px;letter-spacing:.1em;color:var(--ink-2);
+  }
+  .ghost:active{background:rgba(255,253,248,.95)}
+  .link{font-size:13px;color:var(--muted);text-decoration:underline;text-underline-offset:3px}
+
+  /* ---------- 首页 ---------- */
+  .hero{padding:14px 2px 22px;position:relative}
+  .hero-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .kicker{font-size:11px;letter-spacing:.42em;color:var(--muted);padding-left:2px}
+  .wordmark{
+    font-family:var(--font-han);font-size:64px;line-height:1.12;font-weight:600;
+    letter-spacing:.06em;margin:16px 0 8px;
+  }
+  .wordmark .mark{color:var(--red);margin-left:2px}
+  .tagline{font-size:14px;color:var(--ink-2);letter-spacing:.04em;line-height:1.7}
+  .seal{
+    position:absolute;right:6px;bottom:24px;width:44px;height:44px;border:2px solid var(--red);
+    border-radius:6px;color:var(--red);font-family:var(--font-han);font-size:15px;line-height:1.05;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    transform:rotate(-7deg);opacity:.82;letter-spacing:0;padding:3px;
+  }
+  .modes{display:flex;flex-direction:column;gap:12px}
+  .modes-label{font-size:11.5px;letter-spacing:.24em;color:var(--muted);margin:0 0 9px 3px}
+  .mode{
+    display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;gap:4px 14px;
+    align-items:center;text-align:left;padding:15px 16px;border-radius:20px;
+    background:var(--paper-2);border:1px solid var(--line);box-shadow:var(--shadow);
+    transition:transform .14s ease, border-color .2s;
+  }
+  .mode:active{transform:scale(.985);border-color:rgba(185,59,43,.4)}
+  .mode-demo{
+    grid-row:1 / span 2;display:flex;align-items:center;gap:3px;
+    font-family:var(--font-han);font-size:22px;color:var(--ink);
+  }
+  .mode-demo i{font-style:normal;font-size:11px;color:var(--muted);margin:0 2px}
+  .mode-demo b{font-weight:400;font-size:11px;color:var(--muted);margin:0 2px}
+  .mode-demo .ghost-c{color:var(--muted);opacity:.55}
+  .mode-txt strong{display:block;font-size:17px;letter-spacing:.14em;font-weight:600}
+  .mode-txt small{display:block;font-size:12.5px;color:var(--muted);margin-top:3px;letter-spacing:.02em}
+  .mode-meta{font-size:11px;color:var(--muted);grid-column:2;letter-spacing:.08em}
+  .quick{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .quick-btn{
+    padding:13px 12px;border-radius:16px;border:1px solid var(--line);
+    background:rgba(255,253,248,.55);text-align:left;font-size:14px;letter-spacing:.08em;
+  }
+  .quick-btn small{display:block;font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.02em}
+  .quick-btn:active{background:var(--paper-2)}
+  .howto{margin-top:22px;border-top:1px solid var(--line-2);padding-top:14px;font-size:13px;color:var(--ink-2)}
+  .howto summary{list-style:none;cursor:pointer;color:var(--muted);font-size:12.5px;letter-spacing:.12em}
+  .howto summary::-webkit-details-marker{display:none}
+  .howto summary::after{content:" ＋";color:var(--muted)}
+  .howto[open] summary::after{content:" －"}
+  .howto ul{margin:12px 0 0;padding-left:18px;line-height:1.85}
+  .howto li::marker{color:var(--red)}
+  .records{display:flex;margin-top:20px;padding-top:16px;border-top:1px solid var(--line-2)}
+  .records div{flex:1}
+  .records div:nth-child(2){text-align:center}
+  .records div:last-child{text-align:right}
+  .records b{display:block;font-family:var(--font-han);font-size:19px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}
+  .records em{display:block;font-style:normal;font-size:10.5px;color:var(--muted);letter-spacing:.1em;margin-top:3px}
+  .foot{margin-top:auto;padding-top:20px;font-size:11px;color:var(--muted);letter-spacing:.06em;line-height:1.8}
+
+  /* ---------- 顶栏 / 进度 ---------- */
+  .topbar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .icon-btn{
+    width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+    display:grid;place-items:center;font-size:15px;color:var(--ink-2);background:rgba(255,253,248,.6);flex:0 0 auto;
+  }
+  .icon-btn:active{background:var(--paper-2)}
+  .pbar{flex:1;height:4px;border-radius:99px;background:rgba(32,30,26,.09);overflow:hidden}
+  .pbar span{display:block;height:100%;width:0;border-radius:99px;background:var(--ink);transition:width .4s cubic-bezier(.2,.8,.2,1)}
+  .topscore{font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink-2);flex:0 0 auto;letter-spacing:.04em}
+  .topscore b{font-size:16px}
+
+  .qmeta{display:flex;align-items:center;justify-content:space-between;font-size:11.5px;color:var(--muted);letter-spacing:.12em;margin-bottom:2px;min-height:18px}
+  .streak{color:var(--red);opacity:0;transition:opacity .25s}
+  .streak.on{opacity:1}
+
+  /* ---------- 题板 ---------- */
+  .board{display:flex;align-items:center;justify-content:center;gap:10px;padding:22px 0 6px}
+  .playbody{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0}
+  .slot{display:flex;flex-direction:column;align-items:center;gap:9px}
+  .frame{
+    --sz:clamp(118px, 16.4vh, 148px);
+    width:var(--sz);height:var(--sz);border-radius:22px;background:var(--paper-2);
+    border:1px solid var(--line);box-shadow:var(--shadow), inset 0 1px 0 #fff;
+    display:flex;align-items:center;justify-content:center;position:relative;overflow:visible;
+    font-family:var(--font-han);
+  }
+  .frame::before{
+    content:"";position:absolute;inset:9px;border-radius:15px;
+    border:1px dashed rgba(32,30,26,.09);pointer-events:none;
+  }
+  .pair.lr{flex-direction:row;gap:7px}
+  .pair.lr .g{font-size:calc(var(--sz) * .37);line-height:1}
+  .pair.tb{flex-direction:column;justify-content:center;line-height:1;gap:3px}
+  .pair.tb .g{font-size:calc(var(--sz) * .355);line-height:.95}
+  .pair .stroke{
+    position:absolute;top:-12px;right:-2px;
+    padding:4px 9px 5px;border-radius:999px;
+    background:var(--paper-2);border:1px solid rgba(185,59,43,.42);
+    color:var(--red);font-size:16px;line-height:1;letter-spacing:.06em;
+    box-shadow:0 6px 14px -10px rgba(90,40,25,.9);
+    transform:rotate(4deg);animation:breathe 2.6s ease-in-out infinite;
+  }
+  .pair .g.big{font-size:calc(var(--sz) * .525)}
+  .cap{font-size:14px;letter-spacing:.12em;color:var(--ink-2);font-weight:500}
+  .eq{font-family:var(--font-han);font-size:20px;color:var(--muted);padding-bottom:22px}
+  .frame.ans{border-style:dashed;border-color:rgba(32,30,26,.22);background:rgba(255,253,248,.5)}
+  .frame.ans .qm{font-size:calc(var(--sz) * .34);color:rgba(32,30,26,.22)}
+  .frame.ans.revealed{border-style:solid;background:var(--paper-2);animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+  .frame.ans.revealed .g{font-size:calc(var(--sz) * .525);line-height:1;animation:inkIn .5s ease both}
+  .frame.ans.revealed.ok{border-color:rgba(47,107,88,.5);box-shadow:0 0 0 4px rgba(47,107,88,.09), var(--shadow)}
+  .frame.ans.revealed.no{border-color:rgba(185,59,43,.45);box-shadow:0 0 0 4px rgba(185,59,43,.08), var(--shadow);animation:shake .4s}
+  .stamp{
+    position:absolute;right:6px;bottom:8px;width:26px;height:26px;border:1.6px solid var(--red);
+    border-radius:4px;color:var(--red);font-size:13px;display:grid;place-items:center;
+    transform:rotate(-9deg);opacity:.9;font-family:var(--font-han);
+    animation:stampIn .4s .18s cubic-bezier(.2,1.6,.4,1) both;
+  }
+
+  /* ---------- 选项 ---------- */
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+  .opt{
+    height:64px;border-radius:16px;background:var(--paper-2);border:1px solid var(--line);
+    box-shadow:0 8px 18px -16px rgba(62,45,20,.6);
+    font-family:var(--font-han);font-size:32px;line-height:1;color:var(--ink);
+    transition:transform .1s ease, background .18s, border-color .18s, opacity .18s;
+    position:relative;
+  }
+  .opt:active{transform:scale(.975)}
+  .opt.correct{background:var(--green-soft);border-color:rgba(47,107,88,.5);color:var(--green)}
+  .opt.wrong{background:var(--red-soft);border-color:rgba(185,59,43,.45);color:var(--red)}
+  .opt.out{opacity:.22;text-decoration:line-through;text-decoration-thickness:1px}
+  .opt.reveal-ans{box-shadow:0 0 0 2px rgba(47,107,88,.35) inset}
+
+  /* ---------- 反馈 ---------- */
+  .fb-wrap{overflow:hidden;max-height:0;transition:max-height .38s cubic-bezier(.2,.8,.2,1)}
+  .fb-wrap.show{max-height:200px}
+  .fb{
+    margin-top:14px;padding:13px 14px 14px;border-radius:16px;border:1px solid var(--line);
+    background:rgba(255,253,248,.85);
+  }
+  .fb.ok{border-color:rgba(47,107,88,.25);background:rgba(228,238,233,.55)}
+  .fb.no{border-color:rgba(185,59,43,.22);background:rgba(246,227,222,.5)}
+  .fb-head{display:flex;align-items:baseline;gap:8px}
+  .fb-ico{font-size:13px;font-weight:600}
+  .fb.ok .fb-ico{color:var(--green)}
+  .fb.no .fb-ico{color:var(--red)}
+  .fb-char{font-family:var(--font-han);font-size:24px;line-height:1}
+  .fb-py{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .fb-pts{margin-left:auto;font-size:12.5px;color:var(--green);font-variant-numeric:tabular-nums;letter-spacing:.04em}
+  .fb p{font-size:13px;line-height:1.72;color:var(--ink-2);margin-top:7px;letter-spacing:.02em}
+  .bottom{margin-top:16px}
+
+  /* ---------- 结算 ---------- */
+  .result{padding-top:8px;display:flex;flex-direction:column;align-items:center}
+  .rank{
+    margin-top:6px;padding:7px 16px;border:1.6px solid var(--red);border-radius:6px;color:var(--red);
+    font-family:var(--font-han);font-size:20px;letter-spacing:.3em;text-indent:.3em;
+    transform:rotate(-2.5deg);opacity:.92;
+  }
+  .score-big{font-family:var(--font-han);font-size:76px;line-height:1.1;margin:14px 0 0;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .score-big small{font-size:16px;font-family:var(--font-ui);color:var(--muted);margin-left:6px;letter-spacing:.1em}
+  .stats{display:flex;gap:26px;margin:14px 0 4px;text-align:center}
+  .stats div{display:flex;flex-direction:column;gap:4px}
+  .stats b{font-size:16px;font-variant-numeric:tabular-nums;font-weight:600}
+  .stats em{font-style:normal;font-size:10.5px;color:var(--muted);letter-spacing:.1em}
+  .verdict{font-size:12.5px;color:var(--muted);margin-top:12px;letter-spacing:.06em}
+  .wrongs{width:100%;margin-top:22px;border-top:1px solid var(--line-2);padding-top:14px}
+  .wrongs h3{font-size:11.5px;color:var(--muted);letter-spacing:.16em;font-weight:400;margin-bottom:10px}
+  .witem{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line-2)}
+  .witem:last-child{border-bottom:0}
+  .wchar{font-family:var(--font-han);font-size:28px;line-height:1;color:var(--red);flex:0 0 auto;margin-top:2px}
+  .wtxt b{display:block;font-size:12.5px;font-weight:500;letter-spacing:.04em}
+  .wtxt span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.6}
+  .actions{width:100%;display:flex;flex-direction:column;gap:9px;margin-top:22px}
+  .perfect{font-size:12.5px;color:var(--green);margin-top:22px;letter-spacing:.1em}
+
+  /* ---------- 图鉴 ---------- */
+  .ghead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .ghead h2{font-family:var(--font-han);font-size:22px;letter-spacing:.14em;font-weight:600;flex:1}
+  .gsub{font-size:11px;color:var(--muted);letter-spacing:.08em;margin-top:2px}
+  .gfilter{display:flex;gap:8px;margin-bottom:12px}
+  .chip{
+    padding:7px 13px;border-radius:999px;border:1px solid var(--line);font-size:12.5px;
+    color:var(--ink-2);background:rgba(255,253,248,.55);letter-spacing:.08em;
+  }
+  .chip.active{background:var(--ink);color:#fdfaf2;border-color:var(--ink)}
+  .gsearch{
+    width:100%;height:42px;border-radius:13px;border:1px solid var(--line);background:rgba(255,253,248,.7);
+    padding:0 14px;font-size:13.5px;color:var(--ink);margin-bottom:6px;font-family:var(--font-ui);
+  }
+  .gsearch::placeholder{color:rgba(141,133,122,.8);letter-spacing:.04em}
+  .gsearch:focus{outline:none;border-color:rgba(32,30,26,.3)}
+  .glist{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+  .gcard{
+    border:1px solid var(--line);border-radius:15px;background:rgba(255,253,248,.72);
+    padding:10px 12px;overflow:hidden;
+  }
+  .gcard.hide{display:none}
+  .gcard summary{display:flex;align-items:center;gap:12px;list-style:none;cursor:pointer}
+  .gcard summary::-webkit-details-marker{display:none}
+  .gchar{
+    font-family:var(--font-han);font-size:30px;line-height:1;width:44px;height:44px;
+    display:grid;place-items:center;border-radius:11px;background:#fff;border:1px solid var(--line-2);
+    flex:0 0 auto;
+  }
+  .ginfo{flex:1;min-width:0}
+  .ginfo b{display:block;font-size:13px;font-weight:500;letter-spacing:.06em;color:var(--ink-2)}
+  .ginfo em{font-style:normal;font-size:11px;color:var(--muted);letter-spacing:.04em}
+  .gdot{width:6px;height:6px;border-radius:50%;background:rgba(32,30,26,.14);flex:0 0 auto}
+  .gdot.on{background:var(--red)}
+  .gchev{font-size:17px;line-height:1;color:rgba(32,30,26,.32);transform:rotate(90deg);transition:transform .22s;flex:0 0 auto}
+  .gcard[open] .gchev{transform:rotate(-90deg)}
+  .gcard p{font-size:12.5px;line-height:1.75;color:var(--ink-2);margin:10px 0 2px;padding-top:10px;border-top:1px dashed var(--line-2);letter-spacing:.02em}
+
+  .empty{font-size:13px;color:var(--muted);padding:30px 0;text-align:center;letter-spacing:.08em}
+
+  /* ---------- 动画 ---------- */
+  @keyframes pop{0%{transform:scale(.94)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
+  @keyframes inkIn{0%{opacity:0;transform:scale(.55);filter:blur(4px)}100%{opacity:1;transform:scale(1);filter:blur(0)}}
+  @keyframes stampIn{0%{opacity:0;transform:rotate(-9deg) scale(1.7)}100%{opacity:.9;transform:rotate(-9deg) scale(1)}}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-5px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+  @keyframes breathe{0%,100%{opacity:.82;transform:rotate(4deg) scale(1)}50%{opacity:1;transform:rotate(4deg) scale(1.06)}}
+
+  @media (max-width:360px){
+    .app{padding-left:16px;padding-right:16px}
+    .wordmark{font-size:56px}
+    .frame{--sz:104px;border-radius:19px}
+    .opt{font-size:28px;height:58px}
+    .eq{font-size:17px}
+    .stats{gap:18px}
+    .score-big{font-size:64px}
+  }
+  @media (max-height:730px){
+    .hero{padding:6px 2px 16px}
+    .wordmark{font-size:54px;margin:10px 0 6px}
+    .mode{padding:12px 14px}
+    .quick{margin-top:10px}
+    .howto{margin-top:16px;padding-top:12px}
+    .records{margin-top:14px;padding-top:12px}
+    .foot{padding-top:14px}
+    .board{padding:12px 0 4px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important;transition-duration:.001ms !important}
+  }
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<script>
+(function(){
+  'use strict';
+
+  /* ================= 数据：合体 ================= */
+  /* a+b -> ans；l = lr 左右 / tb 上下 */
+  var COMBO = [
+    {a:'木',b:'几',ans:'机',py:'jī',l:'lr',n:'木字旁配「几」：木头做出的机巧之物。'},
+    {a:'几',b:'木',ans:'朵',py:'duǒ',l:'tb',n:'「几」在上，「木」在下，花枝上开出一朵。'},
+    {a:'女',b:'子',ans:'好',py:'hǎo',l:'lr',n:'女与子，古人眼里最称心的组合。'},
+    {a:'日',b:'月',ans:'明',py:'míng',l:'lr',n:'日与月，天上最亮的两样都在这儿。'},
+    {a:'人',b:'木',ans:'休',py:'xiū',l:'lr',n:'人靠在树旁，就是休息。'},
+    {a:'木',b:'木',ans:'林',py:'lín',l:'lr',n:'两棵树并排，长成一片林。'},
+    {a:'口',b:'鸟',ans:'鸣',py:'míng',l:'lr',n:'鸟张开嘴，声音就出来了。'},
+    {a:'田',b:'力',ans:'男',py:'nán',l:'tb',n:'在田里出力的人。'},
+    {a:'小',b:'大',ans:'尖',py:'jiān',l:'tb',n:'上小下大，越往上越细，就是尖。'},
+    {a:'小',b:'土',ans:'尘',py:'chén',l:'tb',n:'小小的土扬起来，就是尘。'},
+    {a:'人',b:'云',ans:'会',py:'huì',l:'tb',n:'人聚如云，便是会。'},
+    {a:'一',b:'大',ans:'天',py:'tiān',l:'tb',n:'一横压在大上，头顶那一片就是天。'},
+    {a:'大',b:'可',ans:'奇',py:'qí',l:'tb',n:'大得少见，所以称奇。'},
+    {a:'天',b:'口',ans:'吞',py:'tūn',l:'tb',n:'天在口上，一口吞下。'},
+    {a:'田',b:'心',ans:'思',py:'sī',l:'tb',n:'心里那块田，要慢慢耕、慢慢想。'},
+    {a:'相',b:'心',ans:'想',py:'xiǎng',l:'tb',n:'看在眼里，念在心里。'},
+    {a:'木',b:'目',ans:'相',py:'xiāng',l:'lr',n:'眼睛盯着树上看，是「相」。'},
+    {a:'日',b:'十',ans:'早',py:'zǎo',l:'tb',n:'太阳刚过草尖，时候还早。'},
+    {a:'山',b:'石',ans:'岩',py:'yán',l:'tb',n:'山上的石头，是岩。'},
+    {a:'木',b:'子',ans:'李',py:'lǐ',l:'tb',n:'树上结的子，李子。'},
+    {a:'禾',b:'火',ans:'秋',py:'qiū',l:'lr',n:'庄稼熟透，颜色像火，是秋。'},
+    {a:'禾',b:'口',ans:'和',py:'hé',l:'lr',n:'有粮入口，天下就和。'},
+    {a:'口',b:'未',ans:'味',py:'wèi',l:'lr',n:'还没咽下，已知其味。'},
+    {a:'女',b:'马',ans:'妈',py:'mā',l:'lr',n:'女字旁配「马」，读 mā。'},
+    {a:'门',b:'口',ans:'问',py:'wèn',l:'lr',n:'站在门口张开嘴，是问。'},
+    {a:'日',b:'生',ans:'星',py:'xīng',l:'tb',n:'太阳生出的点点光，是星。'},
+    {a:'月',b:'半',ans:'胖',py:'pàng',l:'lr',n:'月是肉月旁，肉长到一半，就胖了。'},
+    {a:'土',b:'也',ans:'地',py:'dì',l:'lr',n:'土字旁配「也」，脚下这片地。'},
+    {a:'王',b:'里',ans:'理',py:'lǐ',l:'lr',n:'王就是玉，玉里的纹路，就是理。'},
+    {a:'言',b:'吾',ans:'语',py:'yǔ',l:'lr',n:'言作偏旁写作「讠」，我说的话就是语。'},
+    {a:'火',b:'丁',ans:'灯',py:'dēng',l:'lr',n:'火字旁配「丁」，一豆灯火。'},
+    {a:'木',b:'交',ans:'校',py:'xiào',l:'lr',n:'木字旁配「交」，读书的地方。'},
+    {a:'木',b:'乔',ans:'桥',py:'qiáo',l:'lr',n:'木字旁配「乔」，过河的木架。'},
+    {a:'弓',b:'长',ans:'张',py:'zhāng',l:'lr',n:'把弓拉长，就是张。'},
+    {a:'王',b:'见',ans:'现',py:'xiàn',l:'lr',n:'玉一露出来，就看得见。'},
+    {a:'日',b:'寸',ans:'时',py:'shí',l:'lr',n:'一寸光阴，日字旁配「寸」。'},
+    {a:'米',b:'分',ans:'粉',py:'fěn',l:'lr',n:'把米分开，磨成粉。'},
+    {a:'米',b:'青',ans:'精',py:'jīng',l:'lr',n:'挑拣过的白米，最精。'},
+    {a:'石',b:'更',ans:'硬',py:'yìng',l:'lr',n:'石字旁配「更」，硬邦邦。'},
+    {a:'又',b:'又',ans:'双',py:'shuāng',l:'lr',n:'又一只手，凑成一双。'},
+    {a:'火',b:'火',ans:'炎',py:'yán',l:'tb',n:'火上加火，热得发炎。'},
+    {a:'月',b:'月',ans:'朋',py:'péng',l:'lr',n:'两串贝并肩，是朋。'},
+    {a:'手',b:'目',ans:'看',py:'kàn',l:'tb',n:'手搭在眼上遮光，是看。'},
+    {a:'上',b:'下',ans:'卡',py:'kǎ',l:'tb',n:'上不来也下不去，卡住了。'},
+    {a:'大',b:'力',ans:'夯',py:'hāng',l:'tb',n:'抡起力气往下砸，是夯。'},
+    {a:'火',b:'山',ans:'灿',py:'càn',l:'lr',n:'火字旁配「山」，亮得灿烂。'},
+    {a:'水',b:'青',ans:'清',py:'qīng',l:'lr',n:'水作偏旁写作「氵」，水清见底。'},
+    {a:'心',b:'亡',ans:'忙',py:'máng',l:'lr',n:'心作偏旁写作「忄」，心都丢了，所以忙。'},
+    {a:'手',b:'丁',ans:'打',py:'dǎ',l:'lr',n:'手作偏旁写作「扌」，抬手一击。'},
+    {a:'口',b:'犬',ans:'吠',py:'fèi',l:'lr',n:'狗张开嘴，就是吠。'},
+    {a:'口',b:'八',ans:'只',py:'zhǐ',l:'tb',n:'口下一撇一捺，是「只」。'},
+    {a:'日',b:'免',ans:'晚',py:'wǎn',l:'lr',n:'太阳下班了，天就晚了。'},
+    {a:'日',b:'尧',ans:'晓',py:'xiǎo',l:'lr',n:'日字旁配「尧」，天刚破晓。'},
+    {a:'言',b:'兑',ans:'说',py:'shuō',l:'lr',n:'言作偏旁写作「讠」，开口说话。'},
+    {a:'木',b:'黄',ans:'横',py:'héng',l:'lr',n:'木字旁配「黄」，横过来的那一笔。'},
+    {a:'木',b:'寸',ans:'村',py:'cūn',l:'lr',n:'几棵树、几寸地，就是一个村。'},
+    {a:'女',b:'生',ans:'姓',py:'xìng',l:'lr',n:'女人所生，是为姓。'},
+    {a:'口',b:'十',ans:'叶',py:'yè',l:'lr',n:'口字旁配「十」，一叶知秋。'},
+    {a:'门',b:'日',ans:'间',py:'jiān',l:'lr',n:'门缝里透进日光，是间。'},
+    {a:'门',b:'木',ans:'闲',py:'xián',l:'lr',n:'门里有棵树，闲着也是闲着。'},
+    {a:'广',b:'木',ans:'床',py:'chuáng',l:'tb',n:'屋里一张木床。'},
+    {a:'田',b:'土',ans:'里',py:'lǐ',l:'tb',n:'田与土之间，是里。'},
+    {a:'白',b:'水',ans:'泉',py:'quán',l:'tb',n:'白花花涌出的水，是泉。'},
+    {a:'田',b:'木',ans:'果',py:'guǒ',l:'tb',n:'树上结出的，是果。'},
+    {a:'山',b:'山',ans:'出',py:'chū',l:'tb',n:'山外还有山，走出去。'},
+    {a:'石',b:'皮',ans:'破',py:'pò',l:'lr',n:'石头破了皮。'},
+    {a:'火',b:'尧',ans:'烧',py:'shāo',l:'lr',n:'火字旁配「尧」，一把火烧起来。'},
+    {a:'水',b:'少',ans:'沙',py:'shā',l:'lr',n:'水少了，沙子就露出来。'},
+    {a:'水',b:'工',ans:'江',py:'jiāng',l:'lr',n:'水字旁配「工」，大江东去。'},
+    {a:'水',b:'每',ans:'海',py:'hǎi',l:'lr',n:'水字旁配「每」，每条河最后都到海里。'},
+    {a:'舌',b:'甘',ans:'甜',py:'tián',l:'lr',n:'舌头尝到甘味，是甜。'},
+    {a:'亡',b:'心',ans:'忘',py:'wàng',l:'tb',n:'心丢了，就忘了。'},
+    {a:'古',b:'月',ans:'胡',py:'hú',l:'lr',n:'古字旁配「月」，胡人的胡。'},
+    {a:'禾',b:'中',ans:'种',py:'zhòng',l:'lr',n:'把禾苗种到田中。'},
+    {a:'力',b:'口',ans:'加',py:'jiā',l:'lr',n:'力上加口，力气再加一分。'},
+    {a:'夕',b:'夕',ans:'多',py:'duō',l:'tb',n:'一个晚上又一个晚上，就多了。'},
+    {a:'日',b:'日',ans:'昌',py:'chāng',l:'tb',n:'两个太阳，光明兴旺。'},
+    {a:'口',b:'口',ans:'吕',py:'lǚ',l:'tb',n:'两口相叠，是吕。'},
+    {a:'立',b:'日',ans:'音',py:'yīn',l:'tb',n:'立与日，凑成一个音。'},
+    {a:'立',b:'早',ans:'章',py:'zhāng',l:'tb',n:'立与早，合成文章的章。'},
+    {a:'白',b:'勺',ans:'的',py:'de',l:'lr',n:'白字旁配「勺」，最常用的那个「的」。'},
+    {a:'门',b:'人',ans:'闪',py:'shǎn',l:'lr',n:'人在门中一闪而过。'},
+    {a:'门',b:'市',ans:'闹',py:'nào',l:'lr',n:'门里像集市，热闹。'},
+    {a:'门',b:'心',ans:'闷',py:'mèn',l:'lr',n:'心关在门里，闷得慌。'},
+    {a:'门',b:'耳',ans:'闻',py:'wén',l:'lr',n:'门内竖着耳朵听，是闻。'},
+    {a:'人',b:'山',ans:'仙',py:'xiān',l:'lr',n:'山里住的人，是仙。'},
+    {a:'人',b:'本',ans:'体',py:'tǐ',l:'lr',n:'人的根本，是身体。'},
+    {a:'人',b:'言',ans:'信',py:'xìn',l:'lr',n:'人说话算数，才有信。'},
+    {a:'人',b:'也',ans:'他',py:'tā',l:'lr',n:'人字旁配「也」，另一个人。'},
+    {a:'人',b:'门',ans:'们',py:'men',l:'lr',n:'人字旁配「门」，我们、你们。'},
+    {a:'人',b:'主',ans:'住',py:'zhù',l:'lr',n:'人守着灯火，是住。'},
+    {a:'人',b:'牛',ans:'件',py:'jiàn',l:'lr',n:'人字旁配「牛」，一件两件。'},
+    {a:'人',b:'尔',ans:'你',py:'nǐ',l:'lr',n:'人字旁配「尔」，说的就是你。'},
+
+    /* —— 日 / 雨 —— */
+    {a:'日',b:'青',ans:'晴',py:'qíng',l:'lr',n:'日字旁配「青」，天放晴了。'},
+    {a:'日',b:'京',ans:'景',py:'jǐng',l:'tb',n:'日在上，京在下，眼前的景。'},
+    {a:'日',b:'辰',ans:'晨',py:'chén',l:'tb',n:'日与辰，清早的晨。'},
+    {a:'日',b:'乍',ans:'昨',py:'zuó',l:'lr',n:'日字旁配「乍」，昨天的昨。'},
+    {a:'日',b:'音',ans:'暗',py:'àn',l:'lr',n:'日字旁配「音」，光被遮住就暗。'},
+    {a:'日',b:'西',ans:'晒',py:'shài',l:'lr',n:'日头偏西，晒了一天。'},
+    {a:'雨',b:'田',ans:'雷',py:'léi',l:'tb',n:'雨下在田上，雷声滚过。'},
+    {a:'雨',b:'相',ans:'霜',py:'shuāng',l:'tb',n:'雨字头配「相」，地上结霜。'},
+
+    /* —— 木 —— */
+    {a:'木',b:'风',ans:'枫',py:'fēng',l:'lr',n:'木字旁配「风」，枫树的枫。'},
+    {a:'木',b:'公',ans:'松',py:'sōng',l:'lr',n:'木字旁配「公」，松树的松。'},
+    {a:'木',b:'支',ans:'枝',py:'zhī',l:'lr',n:'木字旁配「支」，一根树枝。'},
+    {a:'木',b:'艮',ans:'根',py:'gēn',l:'lr',n:'木字旁配「艮」，根扎在土里。'},
+    {a:'木',b:'每',ans:'梅',py:'méi',l:'lr',n:'木字旁配「每」，梅花。'},
+    {a:'木',b:'兆',ans:'桃',py:'táo',l:'lr',n:'木字旁配「兆」，桃树的桃。'},
+    {a:'木',b:'羊',ans:'样',py:'yàng',l:'lr',n:'木字旁配「羊」，样式、模样。'},
+    {a:'木',b:'白',ans:'柏',py:'bǎi',l:'lr',n:'木字旁配「白」，柏树的柏。'},
+    {a:'木',b:'莫',ans:'模',py:'mó',l:'lr',n:'木字旁配「莫」，模子的模。'},
+    {a:'木',b:'对',ans:'树',py:'shù',l:'lr',n:'木字旁配「对」，一棵树。'},
+    {a:'木',b:'口',ans:'杏',py:'xìng',l:'tb',n:'木在上，口在下，杏子的杏。'},
+    {a:'口',b:'木',ans:'呆',py:'dāi',l:'tb',n:'口在上，木在下，发呆的呆。'},
+
+    /* —— 水 / 火 —— */
+    {a:'水',b:'可',ans:'河',py:'hé',l:'lr',n:'水作偏旁写作「氵」，大河。'},
+    {a:'水',b:'羊',ans:'洋',py:'yáng',l:'lr',n:'水字旁配「羊」，汪洋的洋。'},
+    {a:'水',b:'去',ans:'法',py:'fǎ',l:'lr',n:'水字旁配「去」，办法的法。'},
+    {a:'水',b:'目',ans:'泪',py:'lèi',l:'lr',n:'水字旁配「目」，眼里出来的水。'},
+    {a:'水',b:'干',ans:'汗',py:'hàn',l:'lr',n:'水字旁配「干」，出一身汗。'},
+    {a:'火',b:'少',ans:'炒',py:'chǎo',l:'lr',n:'火字旁配「少」，下锅一炒。'},
+    {a:'火',b:'包',ans:'炮',py:'pào',l:'lr',n:'火字旁配「包」，鞭炮的炮。'},
+    {a:'火',b:'考',ans:'烤',py:'kǎo',l:'lr',n:'火字旁配「考」，火上一烤。'},
+    {a:'火',b:'乍',ans:'炸',py:'zhà',l:'lr',n:'火字旁配「乍」，油炸的炸。'},
+    {a:'火',b:'暴',ans:'爆',py:'bào',l:'lr',n:'火字旁配「暴」，火爆的爆。'},
+
+    /* —— 言 / 心 / 目 —— */
+    {a:'言',b:'青',ans:'请',py:'qǐng',l:'lr',n:'言作偏旁写作「讠」，请人帮忙。'},
+    {a:'言',b:'十',ans:'计',py:'jì',l:'lr',n:'言字旁配「十」，计算的计。'},
+    {a:'言',b:'己',ans:'记',py:'jì',l:'lr',n:'言字旁配「己」，记住的记。'},
+    {a:'言',b:'只',ans:'识',py:'shí',l:'lr',n:'言字旁配「只」，识字的识。'},
+    {a:'言',b:'果',ans:'课',py:'kè',l:'lr',n:'言字旁配「果」，上课的课。'},
+    {a:'言',b:'舌',ans:'话',py:'huà',l:'lr',n:'言字旁配「舌」，说话的话。'},
+    {a:'言',b:'寺',ans:'诗',py:'shī',l:'lr',n:'言字旁配「寺」，写诗的诗。'},
+    {a:'言',b:'炎',ans:'谈',py:'tán',l:'lr',n:'言字旁配「炎」，谈话的谈。'},
+    {a:'心',b:'青',ans:'情',py:'qíng',l:'lr',n:'心作偏旁写作「忄」，心情的情。'},
+    {a:'目',b:'青',ans:'睛',py:'jīng',l:'lr',n:'目字旁配「青」，眼睛的睛。'},
+    {a:'目',b:'垂',ans:'睡',py:'shuì',l:'lr',n:'目字旁配「垂」，眼皮垂下来就该睡了。'},
+    {a:'目',b:'丁',ans:'盯',py:'dīng',l:'lr',n:'目字旁配「丁」，眼睛盯住不放。'},
+
+    /* —— 女 / 人 —— */
+    {a:'女',b:'乃',ans:'奶',py:'nǎi',l:'lr',n:'女字旁配「乃」，奶奶的奶。'},
+    {a:'女',b:'且',ans:'姐',py:'jiě',l:'lr',n:'女字旁配「且」，姐姐的姐。'},
+    {a:'女',b:'未',ans:'妹',py:'mèi',l:'lr',n:'女字旁配「未」，妹妹的妹。'},
+    {a:'女',b:'古',ans:'姑',py:'gū',l:'lr',n:'女字旁配「古」，姑姑的姑。'},
+    {a:'女',b:'少',ans:'妙',py:'miào',l:'lr',n:'女字旁配「少」，妙不可言的妙。'},
+    {a:'女',b:'也',ans:'她',py:'tā',l:'lr',n:'女字旁配「也」，另一个她。'},
+    {a:'女',b:'良',ans:'娘',py:'niáng',l:'lr',n:'女字旁配「良」，姑娘的娘。'},
+    {a:'女',b:'昏',ans:'婚',py:'hūn',l:'lr',n:'女字旁配「昏」，成婚的婚。'},
+    {a:'人',b:'立',ans:'位',py:'wèi',l:'lr',n:'人字旁配「立」，位子的位。'},
+    {a:'人',b:'乍',ans:'作',py:'zuò',l:'lr',n:'人字旁配「乍」，做事的作。'},
+    {a:'人',b:'呆',ans:'保',py:'bǎo',l:'lr',n:'人字旁配「呆」，保护的保。'},
+    {a:'人',b:'象',ans:'像',py:'xiàng',l:'lr',n:'人字旁配「象」，好像的像。'},
+    {a:'人',b:'故',ans:'做',py:'zuò',l:'lr',n:'人字旁配「故」，做活的做。'},
+    {a:'人',b:'半',ans:'伴',py:'bàn',l:'lr',n:'人字旁配「半」，陪伴的伴。'},
+    {a:'人',b:'分',ans:'份',py:'fèn',l:'lr',n:'人字旁配「分」，一份两份。'},
+    {a:'人',b:'二',ans:'仁',py:'rén',l:'lr',n:'人字旁配「二」，仁义的仁。'},
+
+    /* —— 口 —— */
+    {a:'口',b:'乞',ans:'吃',py:'chī',l:'lr',n:'口字旁配「乞」，吃饭的吃。'},
+    {a:'口',b:'昌',ans:'唱',py:'chàng',l:'lr',n:'口字旁配「昌」，唱歌的唱。'},
+    {a:'口',b:'那',ans:'哪',py:'nǎ',l:'lr',n:'口字旁配「那」，哪里的哪。'},
+    {a:'口',b:'马',ans:'吗',py:'ma',l:'lr',n:'口字旁配「马」，句末的「吗」。'},
+    {a:'口',b:'巴',ans:'吧',py:'ba',l:'lr',n:'口字旁配「巴」，句末的「吧」。'},
+    {a:'口',b:'欠',ans:'吹',py:'chuī',l:'lr',n:'口字旁配「欠」，吹一口气。'},
+    {a:'口',b:'力',ans:'另',py:'lìng',l:'tb',n:'口在上，力在下，另外的另。'},
+    {a:'口',b:'合',ans:'哈',py:'hā',l:'lr',n:'口字旁配「合」，哈哈的哈。'},
+    {a:'口',b:'下',ans:'吓',py:'xià',l:'lr',n:'口字旁配「下」，吓一跳。'},
+    {a:'口',b:'又',ans:'叹',py:'tàn',l:'lr',n:'口字旁配「又」，叹气的叹。'},
+    {a:'十',b:'口',ans:'古',py:'gǔ',l:'tb',n:'十在上，口在下，古老的字形。'},
+    {a:'矢',b:'口',ans:'知',py:'zhī',l:'lr',n:'矢与口，知道的知。'},
+    {a:'刀',b:'口',ans:'召',py:'zhào',l:'tb',n:'刀在上，口在下，号召的召。'},
+
+    /* —— 手 / 石 / 王 —— */
+    {a:'手',b:'立',ans:'拉',py:'lā',l:'lr',n:'手作偏旁写作「扌」，拉一把。'},
+    {a:'手',b:'台',ans:'抬',py:'tái',l:'lr',n:'提手旁配「台」，抬起来的抬。'},
+    {a:'手',b:'白',ans:'拍',py:'pāi',l:'lr',n:'提手旁配「白」，拍手的拍。'},
+    {a:'手',b:'是',ans:'提',py:'tí',l:'lr',n:'提手旁配「是」，提东西的提。'},
+    {a:'手',b:'召',ans:'招',py:'zhāo',l:'lr',n:'提手旁配「召」，招手的招。'},
+    {a:'石',b:'马',ans:'码',py:'mǎ',l:'lr',n:'石字旁配「马」，号码的码。'},
+    {a:'石',b:'开',ans:'研',py:'yán',l:'lr',n:'石字旁配「开」，研究的研。'},
+    {a:'石',b:'专',ans:'砖',py:'zhuān',l:'lr',n:'石字旁配「专」，一块砖。'},
+    {a:'石',b:'角',ans:'确',py:'què',l:'lr',n:'石字旁配「角」，确实的确。'},
+    {a:'王',b:'朱',ans:'珠',py:'zhū',l:'lr',n:'王就是玉，玉里的珠。'},
+    {a:'王',b:'元',ans:'玩',py:'wán',l:'lr',n:'王字旁配「元」，玩耍的玩。'},
+    {a:'王',b:'求',ans:'球',py:'qiú',l:'lr',n:'王字旁配「求」，皮球的球。'},
+    {a:'王',b:'皮',ans:'玻',py:'bō',l:'lr',n:'王字旁配「皮」，玻璃的玻。'},
+
+    /* —— 门 / 广 / 厂 / 户 / 车 —— */
+    {a:'门',b:'马',ans:'闯',py:'chuǎng',l:'lr',n:'门里一匹马，闯出去了。'},
+    {a:'广',b:'土',ans:'庄',py:'zhuāng',l:'tb',n:'广字头配「土」，村庄的庄。'},
+    {a:'广',b:'车',ans:'库',py:'kù',l:'tb',n:'广字头配「车」，车库的库。'},
+    {a:'广',b:'大',ans:'庆',py:'qìng',l:'tb',n:'广字头配「大」，庆祝的庆。'},
+    {a:'厂',b:'力',ans:'历',py:'lì',l:'tb',n:'厂字头配「力」，历史的历。'},
+    {a:'厂',b:'丁',ans:'厅',py:'tīng',l:'tb',n:'厂字头配「丁」，客厅的厅。'},
+    {a:'户',b:'口',ans:'启',py:'qǐ',l:'tb',n:'户字头配「口」，开启的启。'},
+    {a:'户',b:'方',ans:'房',py:'fáng',l:'tb',n:'户字头配「方」，房子的房。'},
+    {a:'户',b:'羽',ans:'扇',py:'shàn',l:'tb',n:'户字头配「羽」，扇子的扇。'},
+    {a:'车',b:'专',ans:'转',py:'zhuàn',l:'lr',n:'车字旁配「专」，转动的转。'},
+    {a:'车',b:'仑',ans:'轮',py:'lún',l:'lr',n:'车字旁配「仑」，车轮的轮。'},
+    {a:'车',b:'交',ans:'较',py:'jiào',l:'lr',n:'车字旁配「交」，比较的较。'},
+
+    /* —— 鱼虫禾舟耳目走足衣又土山白立田月 —— */
+    {a:'鱼',b:'羊',ans:'鲜',py:'xiān',l:'lr',n:'鱼与羊，味道最鲜。'},
+    {a:'虫',b:'马',ans:'蚂',py:'mǎ',l:'lr',n:'虫字旁配「马」，蚂蚁的蚂。'},
+    {a:'虫',b:'文',ans:'蚊',py:'wén',l:'lr',n:'虫字旁配「文」，蚊子的蚊。'},
+    {a:'禾',b:'兑',ans:'税',py:'shuì',l:'lr',n:'禾字旁配「兑」，交税的税。'},
+    {a:'禾',b:'只',ans:'积',py:'jī',l:'lr',n:'禾字旁配「只」，积攒的积。'},
+    {a:'禾',b:'子',ans:'季',py:'jì',l:'tb',n:'禾在上，子在下，四季的季。'},
+    {a:'禾',b:'女',ans:'委',py:'wěi',l:'tb',n:'禾在上，女在下，委托的委。'},
+    {a:'禾',b:'日',ans:'香',py:'xiāng',l:'tb',n:'禾与日，新米煮出来的香。'},
+    {a:'舟',b:'亢',ans:'航',py:'háng',l:'lr',n:'舟字旁配「亢」，航行的航。'},
+    {a:'舟',b:'见',ans:'舰',py:'jiàn',l:'lr',n:'舟字旁配「见」，军舰的舰。'},
+    {a:'耳',b:'又',ans:'取',py:'qǔ',l:'lr',n:'耳与又，取东西的取。'},
+    {a:'耳',b:'关',ans:'联',py:'lián',l:'lr',n:'耳字旁配「关」，联系的联。'},
+    {a:'走',b:'己',ans:'起',py:'qǐ',l:'lr',n:'走字旁配「己」，起来的起。'},
+    {a:'走',b:'干',ans:'赶',py:'gǎn',l:'lr',n:'走字旁配「干」，赶路的赶。'},
+    {a:'足',b:'包',ans:'跑',py:'pǎo',l:'lr',n:'足字旁配「包」，跑步的跑。'},
+    {a:'足',b:'兆',ans:'跳',py:'tiào',l:'lr',n:'足字旁配「兆」，跳起来的跳。'},
+    {a:'足',b:'各',ans:'路',py:'lù',l:'lr',n:'足字旁配「各」，走路的路。'},
+    {a:'足',b:'艮',ans:'跟',py:'gēn',l:'lr',n:'足字旁配「艮」，跟着走。'},
+    {a:'衣',b:'皮',ans:'被',py:'bèi',l:'lr',n:'衣作偏旁写作「衤」，被子的被。'},
+    {a:'又',b:'土',ans:'圣',py:'shèng',l:'tb',n:'又与土，神圣的圣。'},
+    {a:'又',b:'欠',ans:'欢',py:'huān',l:'lr',n:'又字旁配「欠」，欢喜的欢。'},
+    {a:'又',b:'见',ans:'观',py:'guān',l:'lr',n:'又字旁配「见」，观看的观。'},
+    {a:'土',b:'成',ans:'城',py:'chéng',l:'lr',n:'土字旁配「成」，城墙的城。'},
+    {a:'土',b:'寸',ans:'寺',py:'sì',l:'tb',n:'土与寸，寺庙的寺。'},
+    {a:'土',b:'皮',ans:'坡',py:'pō',l:'lr',n:'土字旁配「皮」，山坡的坡。'},
+    {a:'山',b:'令',ans:'岭',py:'lǐng',l:'lr',n:'山字旁配「令」，山岭的岭。'},
+    {a:'山',b:'风',ans:'岚',py:'lán',l:'lr',n:'山字旁配「风」，山间雾气叫岚。'},
+    {a:'白',b:'王',ans:'皇',py:'huáng',l:'tb',n:'白在上，王在下，皇上的皇。'},
+    {a:'立',b:'木',ans:'亲',py:'qīn',l:'tb',n:'立在上，木在下，亲人的亲。'},
+    {a:'立',b:'里',ans:'童',py:'tóng',l:'tb',n:'立与里，儿童的童。'},
+    {a:'田',b:'介',ans:'界',py:'jiè',l:'tb',n:'田与介，世界的界。'},
+    {a:'田',b:'系',ans:'累',py:'lèi',l:'tb',n:'田与系，累着的累。'},
+    {a:'田',b:'月',ans:'胃',py:'wèi',l:'tb',n:'田与月，肠胃的胃。'},
+    {a:'北',b:'月',ans:'背',py:'bèi',l:'tb',n:'北与月，后背的背。'},
+    {a:'月',b:'生',ans:'胜',py:'shèng',l:'lr',n:'月字旁配「生」，胜利的胜。'},
+    {a:'月',b:'巴',ans:'肥',py:'féi',l:'lr',n:'月是肉月旁，肉多了就肥。'},
+    {a:'月',b:'夫',ans:'肤',py:'fū',l:'lr',n:'月是肉月旁，皮肤的肤。'},
+    {a:'月',b:'干',ans:'肝',py:'gān',l:'lr',n:'月是肉月旁，肝脏的肝。'},
+    {a:'月',b:'土',ans:'肚',py:'dù',l:'lr',n:'月是肉月旁，肚子的肚。'}
+  ];
+
+  /* ================= 数据：添一笔 ================= */
+  /* add 为笔画；ban 为同样成立、不出现在选项里的字 */
+  var STROKE = [
+    {base:'大',add:'丶',addName:'点',ans:'太',py:'tài',n:'点在「大」的下面。点挪到右上，还能成「犬」。',ban:['犬']},
+    {base:'大',add:'一',addName:'横',ans:'天',py:'tiān',n:'横加在「大」的上方。（加在别处还能成「夫」）',ban:['夫']},
+    {base:'人',add:'一',addName:'横',ans:'大',py:'dà',n:'「人」张开双臂，中间一横，就成了大。'},
+    {base:'人',add:'丨',addName:'竖',ans:'个',py:'gè',n:'「人」字中间加一竖。'},
+    {base:'一',add:'丨',addName:'竖',ans:'十',py:'shí',n:'一横一竖，交叉成十。'},
+    {base:'二',add:'一',addName:'横',ans:'三',py:'sān',n:'二再添一横，就是三。'},
+    {base:'口',add:'一',addName:'横',ans:'日',py:'rì',n:'横加在「口」里，日子就有了格。'},
+    {base:'口',add:'丨',addName:'竖',ans:'中',py:'zhōng',n:'一竖穿过「口」，正中。'},
+    {base:'日',add:'丨',addName:'竖',ans:'旧',py:'jiù',n:'竖加在「日」的左边。竖若穿过中间，还能成申、甲、由。',ban:['申','甲','由']},
+    {base:'木',add:'丿',addName:'撇',ans:'禾',py:'hé',n:'木上加一撇，像垂下来的穗。'},
+    {base:'木',add:'丶',addName:'点',ans:'术',py:'shù',n:'点在「木」的右上方。'},
+    {base:'木',add:'一',addName:'横',ans:'本',py:'běn',n:'横加在木的根部，是树根。加在上部还能成末、未。',ban:['末','未']},
+    {base:'王',add:'丶',addName:'点',ans:'主',py:'zhǔ',n:'王头上一点，是灯芯，也是主人。点挪到右下就成玉。',ban:['玉']},
+    {base:'白',add:'一',addName:'横',ans:'百',py:'bǎi',n:'「白」上加一横，一百。横若加在中间，还能成「自」。',ban:['自']},
+    {base:'日',add:'丿',addName:'撇',ans:'白',py:'bái',n:'日上一撇，像日光射出来。'},
+    {base:'目',add:'丿',addName:'撇',ans:'自',py:'zì',n:'目上一撇，指自己的鼻子。'},
+    {base:'田',add:'丨',addName:'竖',ans:'申',py:'shēn',n:'一竖贯穿「田」。'},
+    {base:'了',add:'一',addName:'横',ans:'子',py:'zǐ',n:'「了」加一横，小孩张开手臂。'},
+    {base:'刀',add:'丶',addName:'点',ans:'刃',py:'rèn',n:'刀上一点，指刀口所在。'},
+    {base:'九',add:'丶',addName:'点',ans:'丸',py:'wán',n:'九加一点，揉成小小一粒丸。'},
+    {base:'几',add:'丶',addName:'点',ans:'凡',py:'fán',n:'点在「几」的中间。'},
+    {base:'又',add:'丶',addName:'点',ans:'叉',py:'chā',n:'「又」中加一点，叉开了。'},
+    {base:'火',add:'一',addName:'横',ans:'灭',py:'miè',n:'一横盖住火，火就灭了。'},
+    {base:'半',add:'一',addName:'横',ans:'羊',py:'yáng',n:'「半」上加一横，羊角更完整。'},
+    {base:'小',add:'丿',addName:'撇',ans:'少',py:'shǎo',n:'小加一撇，就少了。'},
+    {base:'十',add:'一',addName:'横',ans:'土',py:'tǔ',n:'横加在「十」的下方。加在上方成干、士。',ban:['干','士']},
+    {base:'三',add:'丨',addName:'竖',ans:'王',py:'wáng',n:'三横加一竖，就是王。'},
+    {base:'二',add:'丨',addName:'竖',ans:'工',py:'gōng',n:'两横加一竖，是工匠的工。'},
+    {base:'万',add:'丶',addName:'点',ans:'方',py:'fāng',n:'点在「万」的顶上，成了方。'},
+    {base:'日',add:'一',addName:'横',ans:'目',py:'mù',n:'横加在「日」中间，多出一格，就是目。加在最下面便成「旦」。',ban:['旦']},
+    {base:'土',add:'一',addName:'横',ans:'王',py:'wáng',n:'「土」上面再添一横，成了王。'},
+    {base:'今',add:'丶',addName:'点',ans:'令',py:'lìng',n:'「今」上加一点，成了命令的令。'},
+    {base:'立',add:'丿',addName:'撇',ans:'产',py:'chǎn',n:'「立」下加一撇，成了生产的产。'},
+    {base:'大',add:'丨',addName:'竖',ans:'木',py:'mù',n:'「大」中间添一竖，就长成一棵树。'},
+    {base:'牛',add:'一',addName:'横',ans:'生',py:'shēng',n:'「牛」下面添一横，是生长的生。'},
+    {base:'米',add:'一',addName:'横',ans:'来',py:'lái',n:'「米」上面添一横，回来的来。'},
+    {base:'儿',add:'一',addName:'横',ans:'元',py:'yuán',n:'「儿」上面添一横，元旦的元。'}
+  ];
+
+  var COMBO_IDS = 0;
+  COMBO.forEach(function(q,i){ q.id='c'+i; q.kind='combo'; });
+  STROKE.forEach(function(q,i){ q.id='s'+i; q.kind='stroke'; });
+
+  var TOTAL = COMBO.length + STROKE.length;
+  var QUIZ_LEN = 10;
+  var FALLBACK = ['日','月','水','火','木','口','人','山','田','心','手','女','子','大','小','上','下','中','文','天','白','石','立','禾','米','土','王','门','马','车'];
+  var SIMPLE = ['大','小','上','下','人','口','山','川','土','木','火','水','日','月','田','白','目','石','子','女','手','心','立','禾','米','王','中','天','文','车','马','力','刀','又','几','了','十','二','三','一','八','儿','九','万','工','干','士','于','才','寸','亡','也','之','己'];
+
+  /* ================= 工具 ================= */
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function pick(arr, n){ return shuffle(arr).slice(0, n); }
+  function $(sel, root){ return (root || document).querySelector(sel); }
+  function $$(sel, root){ return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+
+  /* ================= 存档 ================= */
+  var LS_KEY = 'ziqu_v1';
+  var DEFAULT_SAVE = { best:{combo:0,stroke:0,mixed:0}, learned:[], sound:true, plays:0, right:0, total:0, maxStreak:0 };
+  var save = loadSave();
+
+  function loadSave(){
+    var base = JSON.parse(JSON.stringify(DEFAULT_SAVE));
+    try{
+      var raw = localStorage.getItem(LS_KEY);
+      if (!raw) return base;
+      var o = JSON.parse(raw);
+      if (!o || typeof o !== 'object') return base;
+      base.best.combo = Number(o.best && o.best.combo) || 0;
+      base.best.stroke = Number(o.best && o.best.stroke) || 0;
+      base.best.mixed = Number(o.best && o.best.mixed) || 0;
+      base.learned = Array.isArray(o.learned) ? o.learned.filter(function(x){ return typeof x === 'string'; }) : [];
+      base.sound = o.sound !== false;
+      base.plays = Number(o.plays) || 0;
+      base.right = Number(o.right) || 0;
+      base.total = Number(o.total) || 0;
+      base.maxStreak = Number(o.maxStreak) || 0;
+      return base;
+    }catch(e){ return base; }
+  }
+  function persist(){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(save)); }catch(e){}
+  }
+
+  /* ================= 音效 ================= */
+  var audioCtx = null;
+  function tone(freq, dur, type, vol, delay){
+    if (!save.sound) return;
+    try{
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioCtx = audioCtx || new AC();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      var t = audioCtx.currentTime + (delay || 0);
+      var o = audioCtx.createOscillator();
+      var g = audioCtx.createGain();
+      o.type = type || 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol || 0.05, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t); o.stop(t + dur + 0.05);
+    }catch(e){}
+  }
+  function sfx(kind){
+    if (kind === 'ok'){ tone(660,.16,'sine',.05); tone(990,.2,'sine',.04,.08); }
+    else if (kind === 'no'){ tone(190,.22,'triangle',.055); tone(150,.22,'triangle',.04,.06); }
+    else if (kind === 'tap'){ tone(520,.05,'sine',.025); }
+    else if (kind === 'win'){ [523,659,784,1047].forEach(function(f,i){ tone(f,.24,'sine',.045,i*.09); }); }
+  }
+
+  /* ================= 状态 ================= */
+  var state = {
+    screen: 'home',
+    mode: 'mixed',
+    queue: [],
+    idx: 0,
+    score: 0,
+    streak: 0,
+    maxStreak: 0,
+    correct: 0,
+    wrong: [],
+    answered: false,
+    hint: false,
+    q: null,
+    options: [],
+    gain: 0,
+    picked: '',
+    galFilter: 'all',
+    galQuery: ''
+  };
+
+  var app = $('#app');
+
+  /* ================= 出题 ================= */
+  function buildQueue(mode){
+    var combo = shuffle(COMBO);
+    var stroke = shuffle(STROKE);
+    var items;
+    if (mode === 'combo'){
+      items = combo.slice(0, QUIZ_LEN);
+    } else if (mode === 'stroke'){
+      items = stroke.slice(0, QUIZ_LEN);
+    } else {
+      items = combo.slice(0, 6).concat(stroke.slice(0, 4));
+    }
+    return shuffle(items);
+  }
+
+  function pickOptions(q){
+    var ans = q.ans;
+    var ban = {};
+    ban[ans] = 1;
+    (q.ban || []).forEach(function(c){ ban[c] = 1; });
+    if (q.base) ban[q.base] = 1;
+
+    var primary = [];
+    var secondary = [];
+
+    if (q.kind === 'combo'){
+      var key = [q.a, q.b].sort().join('|');
+      COMBO.forEach(function(x){
+        var k = [x.a, x.b].sort().join('|');
+        if (k === key){ ban[x.ans] = 1; return; }   // 同部件的另一种组合，不能当干扰项
+        if (x.a === q.a || x.a === q.b || x.b === q.a || x.b === q.b) primary.push(x.ans);
+        else secondary.push(x.ans);
+      });
+    } else {
+      // 添笔题只用笔画简单的字做干扰项，避免一眼就能排除
+      STROKE.forEach(function(x){ if (x.ans !== ans) primary.push(x.ans); });
+      SIMPLE.forEach(function(c){ secondary.push(c); });
+      secondary = secondary.concat(STROKE.map(function(x){ return x.ans; }));
+    }
+
+    var seen = {};
+    seen[ans] = 1;
+    var out = [];
+
+    function take(list){
+      var sh = shuffle(list);
+      for (var i = 0; i < sh.length && out.length < 3; i++){
+        var c = sh[i];
+        if (ban[c] || seen[c]) continue;
+        seen[c] = 1; out.push(c);
+      }
+    }
+    take(primary);
+    take(secondary);
+    take(FALLBACK);
+
+    var guard = 0;
+    while (out.length < 3 && guard++ < 300){
+      var r = FALLBACK[Math.floor(Math.random() * FALLBACK.length)];
+      if (ban[r] || seen[r]) continue;
+      seen[r] = 1; out.push(r);
+    }
+    return shuffle([ans].concat(out));
+  }
+
+  /* ================= 首页 ================= */
+  function renderHome(){
+    state.screen = 'home';
+    var learned = save.learned.length;
+    app.innerHTML =
+      '<section class="hero">' +
+        '<div class="hero-top">' +
+          '<span class="kicker">合 体 · 添 笔</span>' +
+          '<button class="pill" data-act="sound">音效 ' + (save.sound ? '开' : '关') + '</button>' +
+        '</div>' +
+        '<h1 class="wordmark">字趣<span class="mark">。</span></h1>' +
+        '<p class="tagline">两个汉字，凑成另一个汉字。<br>也可以只添一笔。</p>' +
+        '<div class="seal">识<br>字</div>' +
+      '</section>' +
+
+      '<div class="modes-label">选 一 种 玩 法</div>' +
+      '<section class="modes">' +
+        '<button class="mode" data-act="start" data-mode="combo">' +
+          '<div class="mode-demo"><span>几</span><i>+</i><span>木</span><b>＝</b><span class="ghost-c">朵</span></div>' +
+          '<div class="mode-txt"><strong>合体</strong><small>两个汉字，拼成一个新字</small></div>' +
+          '<div class="mode-meta">最高 ' + save.best.combo + ' 分</div>' +
+        '</button>' +
+        '<button class="mode" data-act="start" data-mode="stroke">' +
+          '<div class="mode-demo"><span>大</span><i>+</i><span>丶</span><b>＝</b><span class="ghost-c">太</span></div>' +
+          '<div class="mode-txt"><strong>添笔</strong><small>给汉字添一笔，变出新字</small></div>' +
+          '<div class="mode-meta">最高 ' + save.best.stroke + ' 分</div>' +
+        '</button>' +
+      '</section>' +
+
+      '<section class="quick">' +
+        '<button class="quick-btn" data-act="start" data-mode="mixed">混合闯关<small>两种混着出 · 最高 ' + save.best.mixed + ' 分</small></button>' +
+        '<button class="quick-btn" data-act="gallery">字库图鉴<small>已识 ' + learned + ' / ' + TOTAL + ' 字</small></button>' +
+      '</section>' +
+
+      '<details class="howto"><summary>怎么玩</summary><ul>' +
+        '<li>每局 10 题，从字库里随机抽。</li>' +
+        '<li>合体题：看两个汉字怎么摆——左右并排还是上下相叠——再选出合成的新字。</li>' +
+        '<li>添笔题：给这个字添上指定的一笔（点、横、竖、撇），会变成哪个字？</li>' +
+        '<li>连续答对有额外加分，用提示会扣 3 分。</li>' +
+        '<li>答对过的字会记进图鉴，答错也没关系，结算页会再讲一遍。</li>' +
+      '</ul></details>' +
+
+      '<section class="records">' +
+        '<div><b>' + save.total + '</b><em>累计答题</em></div>' +
+        '<div><b>' + (save.total ? Math.round(save.right / save.total * 100) + '%' : '—') + '</b><em>正确率</em></div>' +
+        '<div><b>' + save.maxStreak + '</b><em>最长连对</em></div>' +
+      '</section>' +
+
+      '<footer class="foot">共 ' + TOTAL + ' 题 · 单文件网页，手机可直接打开<br>成绩只保存在这台设备上</footer>';
+  }
+
+  /* ================= 答题页 ================= */
+  function startRound(mode){
+    state.mode = mode;
+    state.queue = buildQueue(mode);
+    state.idx = 0;
+    state.score = 0;
+    state.streak = 0;
+    state.maxStreak = 0;
+    state.correct = 0;
+    state.wrong = [];
+    state.hint = false;
+    state.answered = false;
+    state.picked = '';
+    state.gain = 0;
+    renderQuestion();
+  }
+
+  function renderQuestion(){
+    var q = state.queue[state.idx];
+    state.q = q;
+    state.answered = false;
+    state.hint = false;
+    state.options = pickOptions(q);
+
+    var isCombo = q.kind === 'combo';
+    var lr = isCombo && q.l === 'lr';
+    var pairHTML, capHTML;
+
+    if (isCombo){
+      pairHTML = '<div class="frame pair ' + (lr ? 'lr' : 'tb') + '">' +
+                   '<span class="g">' + q.a + '</span>' +
+                   '<span class="g">' + q.b + '</span>' +
+                 '</div>';
+      capHTML = lr ? '左右相合' : '上下相叠';
+    } else {
+      pairHTML = '<div class="frame pair">' +
+                   '<span class="g big">' + q.base + '</span>' +
+                   '<span class="stroke">＋' + q.add + '</span>' +
+                 '</div>';
+      capHTML = '添一' + q.addName + '（' + q.add + '）';
+    }
+
+    var optsHTML = state.options.map(function(c){
+      return '<button class="opt" data-act="pick" data-ch="' + c + '">' + c + '</button>';
+    }).join('');
+
+    app.innerHTML =
+      '<div class="topbar">' +
+        '<button class="icon-btn" data-act="quit" aria-label="返回">←</button>' +
+        '<div class="pbar"><span id="pbar"></span></div>' +
+        '<div class="topscore"><b id="scoreVal">' + state.score + '</b> 分</div>' +
+      '</div>' +
+      '<div class="qmeta">' +
+        '<span>' + (q.kind === 'combo' ? '合体' : '添笔') + ' · 第 ' + (state.idx + 1) + ' / ' + state.queue.length + ' 题</span>' +
+        '<span class="streak' + (state.streak >= 2 ? ' on' : '') + '" id="streak">连对 ×' + state.streak + '</span>' +
+      '</div>' +
+
+      '<div class="playbody">' +
+      '<div class="board">' +
+        '<div class="slot">' + pairHTML + '<div class="cap">' + capHTML + '</div></div>' +
+        '<div class="eq">＝</div>' +
+        '<div class="slot">' +
+          '<div class="frame ans" id="ansFrame"><span class="qm">？</span></div>' +
+          '<div class="cap" id="ansCap">会是什么字</div>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="options">' + optsHTML + '</div>' +
+      '<div class="fb-wrap" id="fbWrap" aria-live="polite"></div>' +
+      '</div>' +
+
+      '<div class="bottom">' +
+        '<button class="ghost" id="hintBtn" data-act="hint">提示一下 · 去掉两个错误答案</button>' +
+        '<button class="primary" data-act="next" style="display:none" id="nextBtn">继 续</button>' +
+      '</div>';
+
+    updateProgress();
+  }
+
+  function updateProgress(){
+    var el = $('#pbar');
+    if (!el) return;
+    var pct = ((state.idx + 1) / state.queue.length) * 100;
+    el.style.width = pct + '%';
+  }
+
+  function useHint(){
+    if (state.answered || state.hint) return;
+    state.hint = true;
+    var wrongs = $$('.opt').filter(function(b){ return b.dataset.ch !== state.q.ans; });
+    shuffle(wrongs).slice(0, 2).forEach(function(b){
+      b.classList.add('out');
+      b.disabled = true;
+    });
+    var hb = $('#hintBtn');
+    if (hb){ hb.textContent = '提示已用 · 本题 -3 分'; hb.disabled = true; hb.style.opacity = '.45'; }
+    sfx('tap');
+  }
+
+  function choose(ch){
+    if (state.answered) return;
+    state.answered = true;
+    state.picked = ch;
+    var q = state.q;
+    var ok = ch === q.ans;
+    var gain = 0;
+
+    if (ok){
+      state.streak++;
+      state.correct++;
+      if (state.streak > state.maxStreak) state.maxStreak = state.streak;
+      gain = 10 + Math.min(Math.max(state.streak - 1, 0), 5) * 2;
+      if (state.hint) gain -= 3;
+      gain = Math.max(gain, 1);
+      state.score += gain;
+      state.gain = gain;
+      if (save.learned.indexOf(q.id) === -1) save.learned.push(q.id);
+      save.right++;
+      sfx('ok');
+    } else {
+      state.streak = 0;
+      state.wrong.push({ q: q, picked: ch });
+      sfx('no');
+    }
+    save.total++;
+    persist();
+
+    if (ok && state.streak >= 3) tone(880,.12,'sine',.03,.16);
+
+    // 选项状态
+    $$('.opt').forEach(function(b){
+      b.disabled = true;
+      var c = b.dataset.ch;
+      if (c === q.ans){
+        b.classList.add('correct');
+        if (c !== ch) b.classList.add('reveal-ans');
+      } else if (c === ch){
+        b.classList.add('wrong');
+      }
+    });
+
+    // 答案框
+    var frame = $('#ansFrame');
+    frame.classList.add('revealed', ok ? 'ok' : 'no');
+    frame.innerHTML = '<span class="g">' + q.ans + '</span>' + (ok ? '<span class="stamp">对</span>' : '');
+    var cap = $('#ansCap');
+    if (cap) cap.textContent = ok ? '就是它' : '正确答案';
+
+    // 顶部分数与连对
+    var sv = $('#scoreVal'); if (sv) sv.textContent = state.score;
+    var st = $('#streak');
+    if (st){
+      st.textContent = '连对 ×' + state.streak;
+      st.classList.toggle('on', state.streak >= 2);
+    }
+
+    // 反馈
+    var fw = $('#fbWrap');
+    fw.innerHTML = '<div class="fb ' + (ok ? 'ok' : 'no') + '">' +
+        '<div class="fb-head">' +
+          '<span class="fb-ico">' + (ok ? '✓ 答对' : '✕ 答错') + '</span>' +
+          '<span class="fb-char">' + q.ans + '</span>' +
+          '<span class="fb-py">' + q.py + '</span>' +
+          (ok ? '<span class="fb-pts">+' + gain + '</span>' : '') +
+        '</div>' +
+        '<p>' + q.n + '</p>' +
+      '</div>';
+    requestAnimationFrame(function(){ fw.classList.add('show'); });
+
+    // 底部按钮
+    var hb = $('#hintBtn');
+    if (hb) hb.style.display = 'none';
+    var nb = $('#nextBtn');
+    if (nb){
+      nb.style.display = 'block';
+      nb.textContent = state.idx >= state.queue.length - 1 ? '看 成 绩' : '继 续';
+    }
+    updateProgress();
+  }
+
+  function next(){
+    state.idx++;
+    if (state.idx >= state.queue.length){ finish(); return; }
+    renderQuestion();
+  }
+
+  /* ================= 结算 ================= */
+  function rankOf(acc){
+    if (acc >= 1) return '造字圣人';
+    if (acc >= 0.9) return '拆字状元';
+    if (acc >= 0.7) return '识字秀才';
+    if (acc >= 0.5) return '蒙学童生';
+    return '初学蒙童';
+  }
+
+  function finish(){
+    state.screen = 'result';
+    var len = state.queue.length;
+    var acc = state.correct / len;
+    var mode = state.mode;
+    var prevBest = save.best[mode] || 0;
+    var isNewBest = state.score > prevBest && prevBest > 0;
+    if (state.score > (save.best[mode] || 0)) save.best[mode] = state.score;
+    if (state.maxStreak > save.maxStreak) save.maxStreak = state.maxStreak;
+    save.plays++;
+    persist();
+    if (acc >= 0.9) sfx('win'); else if (acc > 0) sfx('ok');
+
+    var modeName = mode === 'combo' ? '合体' : (mode === 'stroke' ? '添笔' : '混合');
+
+    var wrongHTML = '';
+    if (state.wrong.length){
+      wrongHTML = '<div class="wrongs"><h3>这几题再看一眼</h3>' +
+        state.wrong.map(function(w){
+          var q = w.q;
+          var eq = q.kind === 'combo'
+            ? q.a + ' ＋ ' + q.b + '（' + (q.l === 'lr' ? '左右' : '上下') + '）'
+            : q.base + ' ＋ ' + q.add + '（' + q.addName + '）';
+          return '<div class="witem">' +
+              '<span class="wchar">' + q.ans + '</span>' +
+              '<span class="wtxt"><b>' + eq + ' → ' + q.ans + ' ' + q.py + '</b><span>' + q.n + '</span></span>' +
+            '</div>';
+        }).join('') + '</div>';
+    } else {
+      wrongHTML = '<p class="perfect">全部答对，一个都没错。</p>';
+    }
+
+    app.innerHTML =
+      '<div class="topbar">' +
+        '<button class="icon-btn" data-act="home" aria-label="返回首页">←</button>' +
+        '<div class="topscore">' + modeName + ' · ' + len + ' 题</div>' +
+      '</div>' +
+      '<div class="result">' +
+        '<div class="rank">' + rankOf(acc) + '</div>' +
+        '<div class="score-big">' + state.score + '<small>分</small></div>' +
+        '<div class="stats">' +
+          '<div><b>' + state.correct + '/' + len + '</b><em>答对</em></div>' +
+          '<div><b>' + state.maxStreak + '</b><em>最长连对</em></div>' +
+          '<div><b>' + save.best[mode] + '</b><em>历史最佳</em></div>' +
+        '</div>' +
+        '<div class="verdict">' + (isNewBest ? '刷新了个人最好成绩' : '正确率 ' + Math.round(acc * 100) + '%') + '</div>' +
+        '<div class="actions">' +
+          '<button class="primary" data-act="again">再 来 一 局</button>' +
+          '<button class="ghost" data-act="gallery">翻翻字库图鉴</button>' +
+          '<button class="ghost" data-act="home">回 到 首 页</button>' +
+        '</div>' +
+        wrongHTML +
+      '</div>';
+  }
+
+  /* ================= 图鉴 ================= */
+  function renderGallery(){
+    state.screen = 'gallery';
+    state.galFilter = 'all';
+    state.galQuery = '';
+    var learnedMap = {};
+    save.learned.forEach(function(id){ learnedMap[id] = 1; });
+
+    var all = COMBO.concat(STROKE);
+    var cards = all.map(function(q){
+      var isCombo = q.kind === 'combo';
+      var eq = isCombo
+        ? q.a + ' ＋ ' + q.b + '（' + (q.l === 'lr' ? '左右' : '上下') + '）'
+        : q.base + ' ＋ 一笔 ' + q.add + '（' + q.addName + '）';
+      var text = (q.ans + ' ' + q.py + ' ' + eq + ' ' + q.n).toLowerCase();
+      return '<details class="gcard" data-kind="' + q.kind + '" data-t="' + text.replace(/"/g,'') + '">' +
+          '<summary>' +
+            '<span class="gchar">' + q.ans + '</span>' +
+            '<span class="ginfo"><b>' + eq + '</b><em>' + q.py + '</em></span>' +
+            '<span class="gdot' + (learnedMap[q.id] ? ' on' : '') + '"></span>' +
+            '<span class="gchev">›</span>' +
+          '</summary>' +
+          '<p>' + q.n + '</p>' +
+        '</details>';
+    }).join('');
+
+    app.innerHTML =
+      '<div class="ghead">' +
+        '<button class="icon-btn" data-act="home" aria-label="返回">←</button>' +
+        '<div style="flex:1"><h2>字库图鉴</h2><div class="gsub">已识 ' + save.learned.length + ' / ' + TOTAL + ' 字 · 点开看字理</div></div>' +
+      '</div>' +
+      '<div class="gfilter">' +
+        '<button class="chip active" data-act="filter" data-f="all">全部</button>' +
+        '<button class="chip" data-act="filter" data-f="combo">合体 ' + COMBO.length + '</button>' +
+        '<button class="chip" data-act="filter" data-f="stroke">添笔 ' + STROKE.length + '</button>' +
+        '<button class="chip" data-act="filter" data-f="learned">已识</button>' +
+      '</div>' +
+      '<input class="gsearch" id="gsearch" type="search" placeholder="搜一个字、拼音或部件…" autocomplete="off">' +
+      '<div class="glist" id="glist">' + cards + '</div>' +
+      '<div class="empty" id="gempty" style="display:none">没有找到，换个字试试。</div>';
+
+    applyGalleryFilter();
+  }
+
+  function applyGalleryFilter(){
+    var q = (state.galQuery || '').trim().toLowerCase();
+    var learnedMap = {};
+    save.learned.forEach(function(id){ learnedMap[id] = 1; });
+    var count = 0;
+    $$('.gcard').forEach(function(card){
+      var okKind = true;
+      if (state.galFilter === 'combo' || state.galFilter === 'stroke') okKind = card.dataset.kind === state.galFilter;
+      else if (state.galFilter === 'learned'){
+        // 已识：卡片角标为红点
+        var dot = card.querySelector('.gdot');
+        okKind = !!(dot && dot.classList.contains('on'));
+      }
+      var okText = !q || card.dataset.t.indexOf(q) !== -1;
+      var show = okKind && okText;
+      card.classList.toggle('hide', !show);
+      if (show) count++;
+    });
+    var em = $('#gempty');
+    if (em) em.style.display = count ? 'none' : 'block';
+  }
+
+  /* ================= 事件 ================= */
+  app.addEventListener('click', function(e){
+    var el = e.target.closest('[data-act]');
+    if (!el) return;
+    var act = el.dataset.act;
+
+    if (act === 'start'){ sfx('tap'); startRound(el.dataset.mode); return; }
+    if (act === 'pick'){ choose(el.dataset.ch); return; }
+    if (act === 'next'){ sfx('tap'); next(); return; }
+    if (act === 'hint'){ useHint(); return; }
+    if (act === 'quit'){ sfx('tap'); renderHome(); return; }
+    if (act === 'home'){ sfx('tap'); renderHome(); return; }
+    if (act === 'again'){ sfx('tap'); startRound(state.mode); return; }
+    if (act === 'gallery'){ sfx('tap'); renderGallery(); return; }
+    if (act === 'sound'){
+      save.sound = !save.sound;
+      persist();
+      if (save.sound) tone(720,.1,'sine',.04);
+      var label = el;
+      label.textContent = '音效 ' + (save.sound ? '开' : '关');
+      return;
+    }
+    if (act === 'filter'){
+      state.galFilter = el.dataset.f;
+      $$('.chip').forEach(function(c){ c.classList.toggle('active', c === el); });
+      applyGalleryFilter();
+      return;
+    }
+  });
+
+  app.addEventListener('input', function(e){
+    if (e.target && e.target.id === 'gsearch'){
+      state.galQuery = e.target.value;
+      applyGalleryFilter();
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (state.screen !== 'play') return;
+    if (e.key >= '1' && e.key <= '4'){
+      var btns = $$('.opt');
+      var b = btns[Number(e.key) - 1];
+      if (b && !b.disabled) choose(b.dataset.ch);
+    } else if (e.key === 'Enter' || e.key === ' '){
+      var nb = $('#nextBtn');
+      if (nb && nb.style.display !== 'none'){ e.preventDefault(); next(); }
+    }
+  });
+
+  /* ================= 启动 ================= */
+  renderHome();
+})();
+</script>
+</body>
+</html>
