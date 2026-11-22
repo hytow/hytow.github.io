@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1a0d05">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="8090水果机">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<link rel="manifest" href="manifest.json?v=20261007b">
+<link rel="shortcut icon" href="favicon.ico?v=20261007b">
+<link rel="icon" type="image/png" sizes="32x32" href="img/icon-32.png?v=20261007b">
+<link rel="icon" type="image/png" sizes="192x192" href="img/icon-192.png?v=20261007b">
+<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png?v=20261007b">
+<title>花果水果机 · 8090 复刻版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#0b0704;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#wrap{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:480px;height:800px;transform-origin:center center;flex:0 0 auto;
+  background:#1a0d05;overflow:hidden}
+img{-webkit-user-drag:none}
+.scr{position:absolute;left:0;top:0;width:480px;height:800px;display:none}
+.scr.on{display:block}
+.full{position:absolute;left:0;top:0;width:480px;height:800px;display:block}
+.tapbtn{position:absolute;border:0;background:none;padding:0;cursor:pointer;display:block;
+  filter:drop-shadow(0 3px 5px rgba(0,0,0,.55));transition:transform .06s}
+.tapbtn:active{transform:translateY(2px) scale(.985)}
+.tapbtn img{display:block;width:100%;height:100%}
+
+/* ---------- 开机画面 ---------- */
+#splash{background:#2a0f06}
+#splash .cp{position:absolute;left:0;bottom:22px;width:480px;text-align:center;
+  color:#fff;font-size:13px;letter-spacing:1px;text-shadow:0 2px 4px #000}
+
+/* ---------- 首次访问：加到桌面提示（只在手机上出现一次） ---------- */
+#addhint{position:absolute;left:34px;top:316px;width:412px;display:none;
+  padding:11px 30px 11px 14px;border-radius:11px;
+  background:rgba(12,5,1,.84);border:1px solid rgba(255,206,90,.5);
+  color:#ffe6ab;font-size:12.5px;line-height:1.62;text-align:center;
+  box-shadow:0 6px 18px rgba(0,0,0,.7);cursor:pointer}
+#addhint.on{display:block;animation:popm .45s cubic-bezier(.2,1.5,.4,1)}
+#addhint b{color:#fff6cc}
+#addhint .x{position:absolute;right:9px;top:5px;font-size:16px;line-height:1;color:#c9a87e}
+
+/* ---------- 游戏主界面 ---------- */
+#bg{position:absolute;left:0;top:0;width:480px;height:800px;display:block}
+#rndbg{position:absolute;left:207px;top:387px;width:64px;height:36px;pointer-events:none}
+
+.rc{position:absolute;width:58px;height:58px;border-radius:7px;pointer-events:none;
+  opacity:0;transition:opacity .06s linear}
+.rc.trail{opacity:.34;background:rgba(255,206,90,.34);
+  box-shadow:inset 0 0 12px rgba(255,200,80,.85),0 0 8px rgba(255,190,60,.5)}
+.rc.on{opacity:1;background:rgba(255,240,160,.46);border:2px solid #ffe97a;
+  box-shadow:0 0 16px 4px rgba(255,205,70,.95),inset 0 0 14px rgba(255,255,215,.9)}
+.rc.lit{opacity:1;background:rgba(255,225,120,.5);border:2px solid #ffe066;
+  box-shadow:0 0 18px 5px rgba(255,200,60,.95),inset 0 0 14px rgba(255,255,220,.9);
+  animation:litp .42s ease-in-out infinite alternate}
+@keyframes litp{from{opacity:.55}to{opacity:1}}
+.rc.hit{animation:hitp .3s ease-out 5}
+@keyframes hitp{0%{opacity:.32}100%{opacity:1}}
+
+.dg{position:absolute;visibility:hidden}
+
+#jp{position:absolute;left:217px;top:323px;width:48px;height:48px;visibility:hidden;
+  filter:drop-shadow(0 0 7px rgba(255,70,40,.95))}
+#jp.on{visibility:visible}
+
+.btnbar,.fkey{position:absolute;cursor:pointer;border:0;background:none;padding:0;display:block;
+  transition:transform .05s}
+.btnbar:active,.fkey:active{transform:translateY(2px)}
+.btnbar img,.fkey img{display:block;width:100%;height:100%}
+
+/* 提示条 */
+#msg{position:absolute;left:96px;top:452px;width:288px;min-height:44px;z-index:8;
+  border-radius:10px;background:rgba(4,14,18,.82);
+  border:1px solid rgba(255,205,90,.6);color:#ffe08a;
+  font-size:17px;font-weight:800;line-height:1.32;letter-spacing:1px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:6px 8px;pointer-events:none;
+  text-shadow:0 0 10px rgba(255,180,60,.85),0 2px 3px #000}
+#msg small{display:block;font-size:11px;font-weight:600;color:#9fd8cf;letter-spacing:0;
+  margin-top:3px;text-shadow:none}
+#msg.pop{animation:popm .45s cubic-bezier(.2,1.7,.4,1)}
+@keyframes popm{0%{transform:scale(.72);opacity:.2}65%{transform:scale(1.07)}100%{transform:scale(1)}}
+
+/* 中奖动画区（原机 showRectF = 100,200 → 380,500） */
+#show{position:absolute;left:100px;top:200px;width:280px;height:300px;display:none;z-index:6;
+  align-items:center;justify-content:center;pointer-events:none;
+  background:url('img/show_bg.png?v=20261007b') center/cover no-repeat;
+  border-radius:9px;box-shadow:0 0 22px rgba(0,0,0,.8),inset 0 0 26px rgba(0,0,0,.5);
+  overflow:hidden}
+#show img{width:280px;height:280px;object-fit:contain;
+  filter:drop-shadow(0 0 16px rgba(255,150,40,.95))}
+#show.on{display:flex;animation:popm .5s cubic-bezier(.2,1.7,.4,1)}
+#show .banner{font-size:40px;font-weight:900;letter-spacing:6px;color:#ffe14a;
+  text-shadow:0 0 12px #ff7a1a,0 0 28px #ff5000,0 3px 0 #7a2600;
+  animation:bannerp .5s ease-in-out infinite alternate}
+@keyframes bannerp{from{transform:scale(.95)}to{transform:scale(1.06)}}
+
+#help{position:absolute;left:150px;top:764px;width:180px;height:28px;
+  border-radius:8px;border:1px solid rgba(255,205,150,.45);
+  background:rgba(40,18,6,.8);color:#ffd79a;font-family:inherit;
+  font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer}
+#help:active{background:rgba(70,32,10,.92)}
+
+/* 点金币数字区域（设定分数） */
+#creditTap{position:absolute;left:246px;top:94px;width:208px;height:48px;cursor:pointer}
+
+/* ---------- 弹窗 ---------- */
+#mask{position:fixed;left:0;top:0;right:0;bottom:0;z-index:60;display:none;
+  align-items:center;justify-content:center;background:rgba(0,0,0,.72);padding:18px}
+#mask.show{display:flex}
+.sheet{width:min(100%,372px);max-height:88vh;display:flex;flex-direction:column;
+  border-radius:14px;overflow:hidden;
+  background:#3a1c0c url('img/msg_bg.png?v=20261007b') center/100% 100% no-repeat;
+  box-shadow:0 22px 60px rgba(0,0,0,.9)}
+.sheet h3{flex:0 0 auto;margin:0;padding:12px 14px 10px;font-size:16px;color:#ffe08a;
+  letter-spacing:4px;text-align:center;border-bottom:1px solid rgba(255,220,150,.35)}
+.sheet .bd{flex:1 1 auto;overflow:auto;-webkit-overflow-scrolling:touch;
+  padding:12px 14px 4px;font-size:12.5px;line-height:1.75;color:#f4e3c8}
+.sheet .bd b{color:#ffe08a}
+.sheet .bd p{margin:0 0 8px}
+.sheet .row{flex:0 0 auto;padding:10px 14px 14px;display:grid;gap:8px}
+/* 赔率表：内容多，用紧凑排版撑满一屏，尽量不用滚 */
+#mask.dense{padding:8px}
+#mask.dense .sheet{max-height:94vh}
+#mask.dense .sheet h3{padding:9px 12px 8px;font-size:15px;letter-spacing:3px}
+#mask.dense .sheet .bd{padding:8px 11px 2px;font-size:12px}
+#mask.dense .sheet .bd p{margin:0 0 6px}
+#mask.dense .otab th{font-size:9.5px;padding:2px 1px 3px}
+#mask.dense .otab td{font-size:11.5px;line-height:1.4;padding:2.5px 1px}
+#mask.dense .sheet .row{padding:8px 12px 11px}
+/* 内容超出一屏时，底部吸一条"可滑动"提示 */
+.scrollhint{position:sticky;bottom:0;height:15px;line-height:15px;display:none;
+  margin-top:2px;text-align:center;font-size:9px;letter-spacing:1px;color:#ffd79a;
+  background:linear-gradient(rgba(58,28,12,0),rgba(58,28,12,.96));pointer-events:none}
+.scrollhint.on{display:block}
+.bt{font-family:inherit;font-size:15px;font-weight:800;padding:11px 0;border-radius:11px;
+  cursor:pointer;letter-spacing:2px;border:2px solid #ffd27a;color:#3a1c00;
+  background:linear-gradient(180deg,#ffcf62,#c9761c);box-shadow:0 3px 0 #7a4408}
+.bt:active{transform:translateY(2px)}
+/* 二级页面的小按钮（图片按钮文案不匹配时用） */
+.pill{position:absolute;border-radius:9px;border:2px solid #ffd27a;cursor:pointer;
+  background:linear-gradient(180deg,#ffcf62,#c9761c);color:#3a1c00;
+  font-family:inherit;font-size:14px;font-weight:800;letter-spacing:2px;
+  box-shadow:0 3px 0 #7a4408}
+.pill:active{transform:translateY(2px)}
+
+.otab{width:100%;border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums}
+.otab th{font-size:10px;color:#e0b184;padding:3px 1px 5px;border-bottom:1px solid #7a4a20}
+.otab td{font-size:11.5px;padding:4px 1px;text-align:center;color:#f2ddc2;
+  border-bottom:1px solid rgba(122,74,32,.5)}
+.otab tbody tr:last-child td{border-bottom:none}
+.otab td.nm{text-align:left;padding-left:4px;color:#fff}
+.otab td.od{color:#9ce87a;font-weight:700}
+.otab td.ex{color:#ffb060;font-weight:800}
+.otab tr.zero td{color:#a89684}
+
+/* ---------- 排行榜 ---------- */
+#rank .lst{position:absolute;left:26px;top:120px;width:428px;height:560px;overflow:auto}
+.ritem{display:flex;align-items:center;gap:9px;padding:7px 10px;margin-bottom:7px;
+  border-radius:10px;background:rgba(30,14,4,.72);border:1px solid rgba(255,205,140,.35)}
+.ritem img.av{width:34px;height:34px;border-radius:6px;flex:0 0 auto}
+.ritem img.md{width:30px;height:30px;flex:0 0 auto}
+.ritem .nm{flex:1;color:#ffe6b8;font-size:13px;font-weight:700}
+.ritem .nm i{display:block;font-style:normal;font-size:10px;color:#b09678;font-weight:500}
+.ritem .sc{color:#8ce07a;font-size:15px;font-weight:900;font-variant-numeric:tabular-nums}
+.ritem .rk{width:26px;text-align:center;color:#ffd27a;font-weight:900;font-size:14px}
+.rempty{text-align:center;color:#c0a98c;font-size:13px;padding:40px 0}
+
+/* ---------- 关于 ---------- */
+#about .box{position:absolute;left:18px;top:80px;width:444px;height:640px;overflow:auto;
+  border-radius:14px;background:rgba(10,6,2,.86);border:2px solid #c98b3a;padding:16px;
+  box-shadow:0 16px 40px rgba(0,0,0,.75)}
+#about h4{color:#ffe08a;font-size:15px;letter-spacing:2px;margin:12px 0 6px}
+#about p{color:#f0e0c8;font-size:12.5px;line-height:1.8;margin:0 0 6px}
+#about .ico{display:block;margin:0 auto 8px;width:56px;height:56px;border-radius:12px}
+#about ul{color:#ff9a7a;font-size:12px;padding-left:18px;line-height:1.8}
+.th{position:absolute;border:0;background:none;padding:0;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="wrap">
+<div id="stage">
+
+  <!-- ============ 1. 开机画面 ============ -->
+  <div class="scr on" id="splash">
+    <img class="full" src="img/splash.png?v=20261007b" alt="">
+    <div class="cp">All copyright @Sam-Brother</div>
+  </div>
+
+  <!-- ============ 2. 主菜单 ============ -->
+  <div class="scr" id="menu">
+    <img class="full" src="img/menu_bg.png?v=20261007b" alt="">
+    <button class="tapbtn" id="m_start"  style="left:140px;top:400px;width:200px;height:50px"><img src="img/btn_start_game.png?v=20261007b" alt=""></button>
+    <button class="tapbtn" id="m_rank"   style="left:140px;top:462px;width:200px;height:50px"><img src="img/btn_rank.png?v=20261007b" alt=""></button>
+    <button class="tapbtn" id="m_coin"   style="left:140px;top:524px;width:200px;height:50px"><img src="img/btn_getcoin.png?v=20261007b" alt=""></button>
+    <button class="tapbtn" id="m_about"  style="left:140px;top:586px;width:200px;height:50px"><img src="img/btn_about.png?v=20261007b" alt=""></button>
+    <button class="tapbtn" id="m_help"   style="left:140px;top:648px;width:200px;height:50px"><img src="img/btn_help.png?v=20261007b" alt=""></button>
+    <button class="tapbtn" id="m_quit"   style="left:140px;top:710px;width:200px;height:50px"><img src="img/btn_quit.png?v=20261007b" alt=""></button>
+    <div id="addhint"><span class="x">×</span><span id="addhintTxt"></span></div>
+    <div style="position:absolute;left:0;right:0;bottom:6px;text-align:center;color:#6d5946;font-size:19px;letter-spacing:1px;pointer-events:none">v20261007b</div>
+  </div>
+
+  <!-- ============ 3. 游戏机 ============ -->
+  <div class="scr" id="game">
+    <img id="bg" src="img/machine_bg.png?v=20261007b" alt="">
+    <img id="rndbg" src="img/random_bg.png?v=20261007b" alt="">
+    <div id="ring"></div>
+    <div id="leds"></div>
+    <img id="jp" src="img/jp0.png?v=20261007b" alt="">
+    <div id="btnrow"></div>
+    <div id="fnrow"></div>
+    <div id="msg">请下注</div>
+    <div id="show"></div>
+    <div id="creditTap" title="点击设定金币"></div>
+    <button id="help">赔率表 / 幸运格说明</button>
+  </div>
+
+  <!-- ============ 4. 排行榜 ============ -->
+  <div class="scr" id="rank">
+    <img class="full" src="img/rank_bg.png?v=20261007b" alt="" style="top:-26px;height:853px">
+    <div class="lst" id="rankLst"></div>
+    <button class="pill" id="r_back"  style="left:30px;top:706px;width:140px;height:40px">返 回</button>
+    <button class="pill" id="r_clear" style="left:310px;top:706px;width:140px;height:40px">清空记录</button>
+  </div>
+
+  <!-- ============ 5. 关于 ============ -->
+  <div class="scr" id="about">
+    <img class="full" src="img/bg_about.png?v=20261007b" alt="">
+    <div class="box">
+      <img class="ico" src="img/icon.png?v=20261007b" alt="">
+      <p>软件名称：花果水果机 · 8090 复刻版</p>
+      <p>原项目：SamWoo/Slot（仿花果水果机 · Android 练手项目）</p>
+      <p>UI 素材来源：花果网络科技有限公司（Higoo）开发的花果水果机</p>
+      <h4>玩法介绍</h4>
+      <p>1. 倍率：苹果×5；橘子×10、芒果×15、铃铛×20；西瓜×20、双星×30、77×40、BAR×120。小图案（标 ×3 的格子）只赔 3 倍。</p>
+      <p>2. 猜大小：押中后可进入比倍模式，选「1-6」或「8-13」猜点数（1~13），猜对奖金翻倍、猜错归零，可连续猜。</p>
+      <p>3. 划拨：中奖分在「BONUS WIN」区，点「←」收进余额，点「→」从余额划 1 分进中奖区参与猜大小。</p>
+      <p>4. 幸运格：跑灯停在花格（左右各 1 格）时会掷一次幸运值，有机会开出射灯、吃掉、小四喜、小三元、大三元、天女散花、九莲宝灯、开火车、大满贯。</p>
+      <p>5. 开始游戏：下注后点 GO 开跑。中奖后点 GO = 收分；再点 GO = 按上次下注续押。重新按任意押注键则清空重押。</p>
+      <p>6. 获取金币：金币（含中奖区）不足 10 时可领 100 金币。</p>
+      <h4>免责声明</h4>
+      <p>本游戏的 UI 图片来自花果网络科技有限公司（Higoo）开发的花果水果机。本页仅供个人怀旧娱乐，请勿用于任何商业用途。</p>
+      <ul>
+        <li>原项目作者：SamBrother</li>
+        <li>Email: 765247593@qq.com</li>
+      </ul>
+      <p style="color:#c0a98c;margin-top:10px">本复刻版为纯单机娱乐，不含任何充值、提现或真钱兑换功能。</p>
+      <p style="color:#7a6350;margin-top:8px">页面版本：v20261007b</p>
+    </div>
+    <button class="pill" id="a_back" style="left:170px;top:734px;width:140px;height:40px">返 回</button>
+  </div>
+
+</div>
+</div>
+
+<!-- ============ 弹窗（帮助 / 赔率 / 获取金币 / 分数设置 / 退出） ============ -->
+<div id="mask">
+  <div class="sheet">
+    <h3 id="mTitle">标题</h3>
+    <div class="bd" id="mBody"></div>
+    <div class="row"><button class="bt" id="mClose">确 定</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+/* 资源版本号：改动素材后只需改这一处，全站资源 URL 随之变化，可绕过手机/CDN 缓存 */
+var V = '?v=20261007b';
+/* 功能键图片路径（ALL 键的图片文件名不同，单独映射） */
+function fimg(k, st){ return 'img/' + (k==='all' ? 'f_all10' : 'f_'+k) + '_' + st + '.png' + V; }
+
+/* ==================================================================
+   全部坐标与规则来自 SamWoo/Slot 的 GameView.java / GameRule.java
+   设计基准 480x800（Configs.DEFAULT_WIDTH / DEFAULT_HEIGHT）
+   ================================================================== */
+
+/* ---------- 棋格坐标系 ---------- */
+var COLX = [36, 94, 152, 210, 268, 326, 384];     /* offsetX=36 + 58*i */
+var ROWY = [141, 199, 257, 315, 373, 431, 489];   /* offsetY=141 + 58*i */
+
+/* 24 格方位：顺时针，从左上角起（顶行6 → 右列6 → 底行6 → 左列6） */
+var SLOT_POS = [
+  [0,0],[1,0],[2,0],[3,0],[4,0],[5,0],
+  [6,0],[6,1],[6,2],[6,3],[6,4],[6,5],
+  [6,6],[5,6],[4,6],[3,6],[2,6],[1,6],
+  [0,6],[0,5],[0,4],[0,3],[0,2],[0,1]
+];
+
+/* 每格「符号 + 赔率」，逐一对应 GameRule.getWinScore() 的 case 0~23 */
+var SLOT = [
+  {s:'orange',o:10},{s:'bell',o:20},{s:'bar',o:50},{s:'bar',o:120},{s:'bar',o:25},
+  {s:'apple',o:5},{s:'mango',o:15},{s:'melon',o:20},{s:'melon',o:3},{s:'flower',o:0},
+  {s:'apple',o:5},{s:'orange',o:3},{s:'orange',o:10},{s:'bell',o:20},{s:'seven',o:3},
+  {s:'seven',o:40},{s:'apple',o:5},{s:'mango',o:3},{s:'mango',o:15},{s:'star',o:30},
+  {s:'star',o:3},{s:'flower',o:0},{s:'apple',o:5},{s:'bell',o:3}
+];
+
+/* 每格中奖音：原机 GameRule.playWinSound(position) 的逐格表 */
+var SLOT_SND = [
+  's_orange.ogg','s_bell.ogg','s_bar_small.mp3','s_bar.ogg','s_bar_small.mp3',
+  's_apple.ogg','s_mango.ogg','s_watermelon.ogg','s_melon_small.mp3','s_select.mp3',
+  's_apple.ogg','s_orange_small.mp3','s_orange.ogg','s_bell.ogg','s_77_small.mp3',
+  's_77.ogg','s_apple.ogg','s_mango_small.mp3','s_mango.ogg','s_star.ogg',
+  's_star_small.mp3','s_select.mp3','s_apple.ogg','s_bell_small.mp3'
+];
+
+/* 位置权重池：GameRule.basePosition 静态块展开后的逐格权重（合计 322，已核对） */
+var WEIGHT = [10,10,4,4,4,40,10,20,20,20,20,20,10,10,10,10,10,20,10,10,10,10,10,20];
+var POOL = [], POOL_N = 0;
+(function(){ for(var i=0;i<24;i++){ for(var j=0;j<WEIGHT[i];j++) POOL.push(i); } POOL_N=POOL.length; })();
+
+/* 幸运值池：GameRule.luckPosition 静态块展开（合计 70） */
+var LUCK = [];
+(function(){
+  var i;
+  for(i=0;i<20;i++){ LUCK.push(31); LUCK.push(32); }
+  for(i=0;i<5;i++){  LUCK.push(24); }
+  for(i=0;i<5;i++){  LUCK.push(24); LUCK.push(25); LUCK.push(26); }
+  for(i=0;i<2;i++){  LUCK.push(27); LUCK.push(29); }
+  for(i=0;i<3;i++){  LUCK.push(28); LUCK.push(30); }
+})();
+var LUCK_N = LUCK.length;
+
+/* 幸运奖项：编号 / 名称 / 图 / 音 / 背景音 */
+var LUCK_INFO = {
+  24:{n:'小四喜', pic:6, snd:'c_sixi.ogg'},
+  25:{n:'小三元', pic:5, snd:'c_sanyuan_s.mp3'},
+  26:{n:'大三元', pic:3, snd:'c_sanyuan_b.ogg'},
+  27:{n:'大满贯', pic:2, snd:'c_slam.ogg'},
+  28:{n:'天女散花', pic:0, snd:'c_fairy.ogg', bg:'c_fairy_bg.mp3'},
+  29:{n:'九莲宝灯', pic:0, snd:'c_nine.ogg'},
+  30:{n:'开火车', pic:4, snd:'c_train.ogg', bg:'c_train_bg.mp3'},
+  31:{n:'射灯', pic:0, snd:'zha.mp3'},
+  32:{n:'被吃掉啦', pic:1, snd:'c_eat.mp3'}
+};
+
+/* 8 个押注键（左→右），倍率与 GameRule 常量一致 */
+var BETS = [
+  {key:'bar',   name:'BAR',  odds:120, kbtn:'k_1.mp3'},
+  {key:'seven', name:'双七', odds:40,  kbtn:'k_2.mp3'},
+  {key:'star',  name:'星星', odds:30,  kbtn:'k_3.mp3'},
+  {key:'melon', name:'西瓜', odds:20,  kbtn:'k_4.mp3'},
+  {key:'bell',  name:'铃铛', odds:20,  kbtn:'k_5.mp3'},
+  {key:'mango', name:'芒果', odds:15,  kbtn:'k_6.mp3'},
+  {key:'orange',name:'橘子', odds:10,  kbtn:'k_7.mp3'},
+  {key:'apple', name:'苹果', odds:5,   kbtn:'k_8.mp3'}
+];
+
+/* 押注数字组中心 = 436.75 - 55.5*j（j=0 最右）；按键 b 对应组 j=7-b */
+var BTN_CX = [];
+for(var b0=0; b0<8; b0++) BTN_CX.push(436.75 - 55.5*(7-b0));
+
+var $ = function(id){ return document.getElementById(id); };
+
+/* ================= 自适应缩放 ================= */
+var stage = $('stage');
+function fit(){
+  var k = Math.min(window.innerWidth/480, window.innerHeight/800);
+  stage.style.transform = 'scale('+k+')';
+}
+window.addEventListener('resize', fit);
+window.addEventListener('orientationchange', function(){ setTimeout(fit, 220); });
+if(window.visualViewport) window.visualViewport.addEventListener('resize', function(){ setTimeout(fit,60); });
+
+/* ================= 音效 ================= */
+var SND_FILES = [
+  /* 逐格中奖音 */
+  's_orange.ogg','s_bell.ogg','s_bar_small.mp3','s_bar.ogg','s_apple.ogg','s_mango.ogg',
+  's_watermelon.ogg','s_melon_small.mp3','s_apple_small.mp3','s_orange_small.mp3',
+  's_77_small.mp3','s_77.ogg','s_mango_small.mp3','s_star.ogg','s_star_small.mp3',
+  's_bell_small.mp3','s_select.mp3',
+  /* 按键音 */
+  'k_1.mp3','k_2.mp3','k_3.mp3','k_4.mp3','k_5.mp3','k_6.mp3','k_7.mp3','k_8.mp3',
+  'k_go.mp3','k_all.mp3',
+  /* 组合大奖音 */
+  'c_sixi.ogg','c_sixi_big.ogg','c_sanyuan_s.mp3','c_sanyuan_b.ogg','c_fairy.ogg',
+  'c_fairy_bg.mp3','c_train.ogg','c_train_bg.mp3','c_slam.ogg','c_nine.ogg',
+  'c_eat.mp3','c_bigsmall.ogg',
+  /* 跑灯 / 射灯 / 杂项 */
+  'turn.mp3','zha.mp3','coin.ogg','notenough.mp3','press.mp3'
+];
+var AUD = {}, muted = false;
+SND_FILES.forEach(function(n){
+  var a = new Audio('snd/'+n);
+  a.preload = 'auto';
+  AUD[n] = a;
+});
+function play(n, vol){
+  if(muted) return;
+  var a = AUD[n]; if(!a) return;
+  try{ a.currentTime = 0; a.volume = (vol==null?0.85:vol); a.play(); }catch(e){}
+}
+var loopName = null;
+function loop(n, on){
+  if(on){
+    if(loopName === n) return;
+    loop(null);
+    loopName = n;
+    var a = AUD[n]; if(a && !muted){ try{ a.currentTime=0; a.volume=0.55; a.loop=true; a.play(); }catch(e){} }
+  }else{
+    if(loopName){
+      var b = AUD[loopName];
+      if(b){ try{ b.pause(); b.loop=false; }catch(e){} }
+      loopName = null;
+    }
+  }
+}
+
+/* ================= 游戏状态 ================= */
+var total = 500;          /* CREDIT（原机默认 500） */
+var roundWin = 0;         /* BONUS WIN */
+var bets = {};
+var idx = 0;              /* 当前灯位 */
+var spinning = false;
+var isContinueBet = false;/* 原机 GameView.isContinueBet */
+BETS.forEach(function(b){ bets[b.key] = 0; });
+
+function saveScore(){
+  try{ localStorage.setItem('fruit8090_total', String(total)); }catch(e){}
+}
+(function loadScore(){
+  try{
+    var v = localStorage.getItem('fruit8090_total');
+    if(v !== null && !isNaN(parseInt(v,10))) total = parseInt(v,10);
+  }catch(e){}
+})();
+
+/* ================= 游戏界面元素 ================= */
+var ring = $('ring'), leds = $('leds'), msg = $('msg'), showBox = $('show'), jp = $('jp');
+
+/* 跑灯高亮格 */
+var cells = [];
+for(var ci=0; ci<24; ci++){
+  (function(i){
+    var p = SLOT_POS[i];
+    var d = document.createElement('div');
+    d.className = 'rc';
+    d.style.left = COLX[p[0]]+'px';
+    d.style.top  = ROWY[p[1]]+'px';
+    ring.appendChild(d);
+    cells.push(d);
+  })(ci);
+}
+function clearLit(){ for(var i=0;i<24;i++) cells[i].classList.remove('lit'); }
+
+/* 数码管 */
+function mkDigits(host, n, xf, y, w, h){
+  var a=[];
+  for(var i=0;i<n;i++){
+    var im=document.createElement('img');
+    im.className='dg';
+    im.style.left=xf(i);
+    im.style.top=y+'px';
+    im.style.width=w+'px';
+    im.style.height=h+'px';
+    host.appendChild(im);
+    a.push(im);
+  }
+  return a;
+}
+function setNum(arr, val, noPad){
+  var s = String(Math.max(0, Math.floor(val||0)));
+  if(s.length > arr.length) s = s.slice(-arr.length);
+  if(!noPad){ while(s.length < arr.length) s = '0'+s; }
+  for(var i=0;i<arr.length;i++){
+    var k = s.length-1-i;
+    if(k>=0){ arr[i].src='img/d'+s.charAt(k)+'.png'+V; arr[i].style.visibility='visible'; }
+    else { arr[i].style.visibility='hidden'; }
+  }
+}
+var ledWin = mkDigits(leds, 8, function(i){ return (200-23*i)+'px'; }, 104, 20, 28);
+var ledTot = mkDigits(leds, 8, function(i){ return (420-23*i)+'px'; }, 104, 20, 28);
+
+var ledBet = [];
+for(var gb=0; gb<8; gb++){
+  (function(j){
+    var one = mkDigits(leds,1,function(){return (438-55.5*j)+'px';},670,16,24)[0];
+    var ten = mkDigits(leds,1,function(){return (419.5-55.5*j)+'px';},670,16,24)[0];
+    ledBet.push([one, ten]);
+  })(gb);
+}
+var ledRnd = [
+  mkDigits(leds,1,function(){return '242px';},392,18,24)[0],
+  mkDigits(leds,1,function(){return '218px';},392,18,24)[0]
+];
+
+/* JP 灯双帧闪烁（flash_led_0=暗 / flash_led_1=亮） */
+var jpTimer=null, jpLit=false;
+function jpBlink(on){
+  if(on){
+    if(jpTimer) return;
+    jp.classList.add('on');
+    jp.src = 'img/jp1.png?v=20261007b';
+    jpTimer = setInterval(function(){
+      jpLit = !jpLit;
+      jp.src = jpLit ? 'img/jp1.png?v=20261007b' : 'img/jp0.png?v=20261007b';
+    }, 170);
+  }else{
+    if(jpTimer){ clearInterval(jpTimer); jpTimer=null; }
+    jp.classList.remove('on');
+    jpLit=false; jp.src='img/jp0.png?v=20261007b';
+  }
+}
+
+function paintDigitLeds(){ setNum(ledTot, total); setNum(ledWin, roundWin); }
+function paintRing(){
+  for(var i=0;i<24;i++){
+    var d=(idx-i+24)%24;
+    cells[i].classList.toggle('on', d===0);
+    cells[i].classList.toggle('trail', d===1||d===2);
+  }
+}
+function say(t, sub){
+  msg.innerHTML = t + (sub?('<small>'+sub+'</small>'):'');
+  msg.classList.remove('pop'); void msg.offsetWidth; msg.classList.add('pop');
+}
+var showT=null;
+function showPic(n, ms){
+  if(!n){ showBox.innerHTML=''; showBox.classList.add('on'); }
+  else{
+    showBox.innerHTML = '<img src="img/pic'+n+'.png'+V+'" alt="">';
+    showBox.classList.add('on');
+  }
+  clearTimeout(showT);
+  showT = setTimeout(function(){ showBox.classList.remove('on'); showBox.innerHTML=''; }, ms||1800);
+}
+function showBanner(txt, ms){
+  showBox.innerHTML = '<div class="banner">'+txt+'</div>';
+  showBox.classList.add('on');
+  clearTimeout(showT);
+  showT = setTimeout(function(){ showBox.classList.remove('on'); showBox.innerHTML=''; }, ms||2000);
+}
+
+/* ================= 押注区 ================= */
+var btnEls = [];
+function clearBets(){ BETS.forEach(function(b){ bets[b.key]=0; }); }
+
+function refreshBet(i){
+  if(spinning) return;
+  var n = bets[BETS[i].key]||0;
+  var im = btnEls[i].querySelector('img');
+  im.src = 'img/b_'+BETS[i].key+'_'+(n>0?'02':'01')+'.png'+V;
+}
+function paintBets(){
+  for(var i=0;i<8;i++){
+    var n = bets[BETS[i].key]||0;
+    var t = ledBet[7-i];
+    setNum([t[0]], n%10);
+    setNum([t[1]], Math.floor(n/10));
+    refreshBet(i);
+  }
+}
+function totalBet(){ var t=0; BETS.forEach(function(b){ t+=bets[b.key]||0; }); return t; }
+
+/* 原机 initPoint()：续押状态下首次按押注键会清空全部押注 */
+function initPoint(){
+  if(isContinueBet){ clearBets(); isContinueBet = false; }
+}
+
+/* 押注：原机是「按下即从余额扣分」 */
+function addBet(i){
+  if(spinning) return;
+  var b = BETS[i];
+  initPoint();
+  if((bets[b.key]||0) >= 99){ say('已达上限','单个符号最多押 99 分'); play('notenough.mp3',0.7); return; }
+  if(total <= 0){ say('金币不足','点右上角金币可设置分数'); play('notenough.mp3',0.7); return; }
+  total--; bets[b.key] = (bets[b.key]||0) + 1;
+  play(b.kbtn, 0.75);
+  paintDigitLeds(); paintBets();
+  saveScore();
+}
+
+for(var bi=0; bi<8; bi++){
+  (function(i){
+    var bk = BETS[i].key;
+    var bt = document.createElement('button');
+    bt.className = 'btnbar';
+    bt.style.left = (BTN_CX[i]-29.5)+'px';
+    bt.style.top  = '698px';
+    bt.style.width= '59px';
+    bt.style.height='64px';
+    bt.innerHTML = '<img src="img/b_'+bk+'_01.png'+V+'" alt="">';
+    $('btnrow').appendChild(bt);
+    btnEls.push(bt);
+
+    var holdT=null, repT=null, held=false;
+    bt.addEventListener('pointerdown', function(e){
+      e.preventDefault(); held=false;
+      if(!spinning) bt.querySelector('img').src='img/b_'+bk+'_02.png'+V;
+      holdT = setTimeout(function(){
+        held = true;
+        repT = setInterval(function(){ addBet(i); if(bets[bk]>=99) clearInterval(repT); }, 110);
+      }, 420);
+    });
+    function up(){
+      clearTimeout(holdT); clearInterval(repT);
+      if(!held) addBet(i);
+      held=false; refreshBet(i);
+    }
+    bt.addEventListener('pointerup', up);
+    bt.addEventListener('pointercancel', function(){ clearTimeout(holdT); clearInterval(repT); held=false; refreshBet(i); });
+    bt.addEventListener('pointerleave', function(){ clearTimeout(holdT); clearInterval(repT); held=false; refreshBet(i); });
+  })(bi);
+}
+
+/* ================= 功能键 ================= */
+var FNROW = [
+  {k:'all',  x:12,  w:59,  h:64, y:549},
+  {k:'left', x:79,  w:59,  h:64, y:549},
+  {k:'right',x:146, w:59,  h:64, y:549},
+  {k:'big',  x:213, w:59,  h:64, y:549},
+  {k:'small',x:280, w:59,  h:64, y:549},
+  {k:'go',   x:347, w:114, h:63, y:550}
+];
+FNROW.forEach(function(f){
+  var bt = document.createElement('button');
+  bt.className = 'fkey';
+  bt.style.left=f.x+'px'; bt.style.top=f.y+'px';
+  bt.style.width=f.w+'px'; bt.style.height=f.h+'px';
+  bt.innerHTML = '<img src="'+fimg(f.k,'01')+'" alt="">';
+  $('fnrow').appendChild(bt);
+  var im = bt.querySelector('img');
+  bt.addEventListener('pointerdown', function(){ im.src=fimg(f.k,'02'); });
+  function rel(){
+    setTimeout(function(){
+      im.src=fimg(f.k,'03');
+      setTimeout(function(){ im.src=fimg(f.k,'01'); }, 140);
+    }, 80);
+  }
+  bt.addEventListener('pointerup', function(){ rel(); act(f.k); });
+  bt.addEventListener('pointerleave', rel);
+});
+
+/* ================= 计分 ================= */
+function winAt(p){ return SLOT[p].o * (bets[SLOT[p].s]||0); }
+
+/* 幸运奖项得分：完全按 GameRule 的 getSmallFourWindsScore 等函数 */
+function comboScore(kind, rp){
+  var b = bets;
+  var bA=b.apple||0, bO=b.orange||0, bM=b.mango||0, bBell=b.bell||0,
+      bMel=b.melon||0, bS=b.star||0, b77=b.seven||0, bBar=b.bar||0;
+  switch(kind){
+    case 24: return 4 * 5 * bA;                                    /* 小四喜 */
+    case 25: return 10*bO + 15*bM + 20*bBell;                      /* 小三元 */
+    case 26: return 20*bMel + 30*bS + 40*b77;                      /* 大三元 */
+    case 27: return 23*(bA+bO+bMel) + 33*(bM+bS) + 43*(bBell+b77) + 220*bBar;  /* 大满贯 */
+    case 31: return winAt(rp);                                     /* 射灯：亮哪格给哪格 */
+    case 32: return 0;                                             /* 被吃掉啦 */
+    default: {
+      var offs = (kind===28) ? [3,6,9,12,15,18]      /* 天女散花 */
+               : (kind===29) ? [0,1,2,3,4,5,6,7,8]   /* 九莲宝灯 */
+               : (kind===30) ? [0,1,2,3,4,5]         /* 开火车 */
+               : [];
+      var s = 0;
+      for(var i=0;i<offs.length;i++) s += winAt((rp+offs[i])%24);
+      return s;
+    }
+  }
+}
+
+/* ================= 开跑 ================= */
+/* 调试钩子：设了值就按值走（用于复现/截图每一种幸运奖项），不设则完全随机 */
+var DBG = { dest:null, luck:null, rp:null };
+try{ window.FRUIT_DBG = DBG; }catch(e){}
+
+function draw(){
+  return (DBG.dest != null) ? DBG.dest : POOL[Math.floor(Math.random()*POOL_N)];
+}
+
+function spin(){
+  if(spinning) return;
+  var t = totalBet();
+  if(t <= 0){ say('请先下注','点下方水果键押分'); play('notenough.mp3',0.75); return; }
+
+  /* 续押：这一轮才扣分（原机 isContinueBet 分支） */
+  if(isContinueBet){
+    if(t > total){ say('金币不足','点主菜单可领取金币'); play('notenough.mp3',0.75); return; }
+    total -= t;
+    saveScore();
+  }else{
+    isContinueBet = true;
+  }
+
+  spinning = true;
+  clearLit();
+  paintDigitLeds();
+  for(var i=0;i<8;i++) btnEls[i].querySelector('img').src='img/b_'+BETS[i].key+'_03.png'+V;
+
+  var target = draw();
+  var laps = 2 + (Math.random()<0.4?1:0);
+  var steps = laps*24 + ((target-idx+24)%24);
+  var cnt = 0;
+  loop('turn.mp3', true);
+  jpBlink(true);
+  say('跑灯中…','本局押注 '+t+' 分');
+
+  function tick(){
+    idx = (idx+1)%24;
+    paintRing();
+    cnt++;
+    if(cnt >= steps){ setTimeout(function(){ settle(target); }, 90); return; }
+    var p = cnt/steps;
+    setTimeout(tick, 26 + 215*Math.pow(p,3.1));
+  }
+  tick();
+}
+
+/* 跑灯停下：命中幸运格（9 / 21）才有幸运判定 */
+function settle(dest){
+  spinning = false;
+  loop(null, false);
+  jpBlink(false);
+  for(var i=0;i<8;i++) refreshBet(i);
+
+  if(dest === 9 || dest === 21){
+    say('幸运格！','花格触发幸运值…');
+    play('s_select.mp3', 0.85);
+    setTimeout(function(){ runLuck(dest); }, 900);
+  }else{
+    var w = winAt(dest);
+    if(w > 0){
+      roundWin += w;
+      play(SLOT_SND[dest], 0.9);
+      cells[dest].classList.add('lit');
+      say('中奖 +'+w, symbolName(SLOT[dest].s)+' ×'+SLOT[dest].o+' 倍'
+          + ((bets[SLOT[dest].s]||0)>1 ? ('（押 '+bets[SLOT[dest].s]+'）') : ''));
+    }else{
+      play('press.mp3', 0.4);
+      say('没中','停在「'+symbolName(SLOT[dest].s)+'」，这格你没押');
+    }
+    paintDigitLeds();
+  }
+}
+
+function symbolName(s){
+  return {apple:'苹果',orange:'橘子',mango:'芒果',bell:'铃铛',melon:'西瓜',
+          star:'星星',seven:'双七',bar:'BAR',flower:'花格'}[s] || s;
+}
+
+/* ================= 幸运判定（GameView.isLuckState） ================= */
+function runLuck(dest){
+  var kind = (DBG.luck != null) ? DBG.luck : LUCK[Math.floor(Math.random()*LUCK_N)];
+  var rp = (DBG.rp != null) ? DBG.rp : Math.floor(Math.random()*24);  /* GameRule.getLuckyPosition() */
+  var info = LUCK_INFO[kind];
+
+  play(info.snd, 0.9);
+  if(info.bg) loop(info.bg, true);
+  jpBlink(true);
+
+  function done(){
+    loop(null, false);
+    jpBlink(false);
+    var w = comboScore(kind, rp);
+    roundWin += w;
+    paintDigitLeds();
+    if(kind === 32){
+      say('被吃掉啦','这一局没有收获');
+    }else if(kind === 31){
+      say('射灯 · +'+w, '灯停在「'+symbolName(SLOT[rp].s)+'」');
+    }else{
+      say(info.n+' · +'+w, 'BONUS WIN 已累计 '+roundWin);
+    }
+    /* 中奖灯位常亮，直到下一次开跑 */
+  }
+
+  switch(kind){
+    case 24:   /* 小四喜：四个苹果位 5 / 10 / 16 / 22 */
+      [5,10,16,22].forEach(function(p){ cells[p].classList.add('lit'); });
+      showPic(6, 2100); soundSeq([5,10,16,22], 240);
+      setTimeout(done, 2000); break;
+
+    case 25:   /* 小三元：橘子 0 / 芒果 6 / 铃铛 13 */
+      [0,6,13].forEach(function(p){ cells[p].classList.add('lit'); });
+      showPic(5, 2000); soundSeq([0,6,13], 280);
+      setTimeout(done, 1900); break;
+
+    case 26:   /* 大三元：西瓜 7 / 星星 19 / 77 15 */
+      [7,15,19].forEach(function(p){ cells[p].classList.add('lit'); });
+      showPic(3, 2300); soundSeq([7,15,19], 300);
+      setTimeout(done, 2200); break;
+
+    case 27:   /* 大满贯：全盘 24 格 */
+      for(var i=0;i<24;i++) cells[i].classList.add('lit');
+      showPic(2, 2600);
+      soundSeq([3,15,19,7,0,13], 200);
+      setTimeout(done, 2500); break;
+
+    case 28:   /* 天女散花：从 rp 起每 3 格一闪，共 6 格 */
+      (function(){
+        var offs=[3,6,9,12,15,18], k=0;
+        showBanner('天女散花', 2100);
+        (function st(){
+          if(k >= offs.length){ setTimeout(done, 350); return; }
+          var p = (rp+offs[k])%24;
+          cells[p].classList.add('lit');
+          play('zha.mp3', 0.4);
+          setTimeout(function(){ play(SLOT_SND[p], 0.85); }, 70);
+          k++; setTimeout(st, 330);
+        })();
+      })();
+      break;
+
+    case 29:   /* 九莲宝灯：从 rp 起连续 9 格 */
+      (function(){
+        var seq = [];
+        for(var i=0;i<9;i++){ cells[(rp+i)%24].classList.add('lit'); seq.push((rp+i)%24); }
+        showBanner('九 莲 宝 灯', 2300);
+        soundSeq(seq, 130);
+        setTimeout(done, 2100);
+      })();
+      break;
+
+    case 30:   /* 开火车：从 rp 起 6 格一列，绕 2 圈 */
+      (function(){
+        showPic(4, 2600);
+        var head = rp, lap = 0, each = [];
+        var iv = setInterval(function(){
+          clearLit();
+          for(var i=0;i<6;i++) cells[(head+i)%24].classList.add('lit');
+          play('zha.mp3', 0.28);
+          head++;
+          if(head >= rp + 24*2){ clearInterval(iv); setTimeout(done, 400); }
+        }, 125);
+      })();
+      break;
+
+    case 31:   /* 射灯：从 dest 跑到 rp，亮那一格 */
+      (function(){
+        var cur = dest, guard = 0;
+        (function st(){
+          clearLit();
+          cells[((cur%24)+24)%24].classList.add('lit');
+          play('zha.mp3', 0.3);
+          if(((cur%24)+24)%24 === rp || guard > 28){ setTimeout(done, 300); return; }
+          cur++; guard++;
+          setTimeout(st, 190);
+        })();
+      })();
+      break;
+
+    default:   /* 32 被吃掉啦 */
+      showPic(1, 2000);
+      cells[dest].classList.add('lit');
+      setTimeout(done, 1900); break;
+  }
+}
+
+/* 依次播放若干格的中奖音 */
+function soundSeq(list, gap){
+  var k = 0;
+  (function st(){
+    if(k >= list.length) return;
+    play(SLOT_SND[list[k]], 0.8);
+    k++; setTimeout(st, gap);
+  })();
+}
+
+/* ================= 功能键动作（对应 GameActivity.onViewClicked） ================= */
+function act(k){
+  if(spinning) return;
+
+  if(k === 'go'){
+    play('k_go.mp3', 0.8);
+    if(roundWin !== 0){            /* 有中奖分 → 先收分 */
+      collect();
+      return;
+    }
+    if(totalBet() <= 0){ say('请先下注','点下方水果键押分'); play('notenough.mp3',0.75); return; }
+    spin();
+    return;
+  }
+
+  if(k === 'left'){                /* 收分 */
+    play('k_go.mp3', 0.7);
+    collect();
+    return;
+  }
+
+  if(k === 'right'){               /* 从余额划 1 分到中奖区 */
+    play('k_go.mp3', 0.7);
+    if(total > 0){ total--; roundWin++; saveScore(); paintDigitLeds(); say('划拨 1 分','中奖区 '+roundWin+' 分，可继续猜大小'); }
+    else { say('金币不足','点主菜单可领取金币'); play('notenough.mp3',0.7); }
+    return;
+  }
+
+  if(k === 'big' || k === 'small'){
+    if(roundWin <= 0){ say('没有可猜的奖金','先中奖，或用「→」从余额划分'); play('notenough.mp3',0.7); return; }
+    var pt = Math.floor(Math.random()*13) + 1;     /* GameRule.getPoints() */
+    setNum(ledRnd, pt);
+    var ok = (k === 'big') ? (pt > 6) : (pt < 7);
+    if(ok){
+      roundWin *= 2;
+      play('c_bigsmall.ogg', 0.9);
+      showPic(4, 1200);
+      say('猜中！翻倍 +'+roundWin, '点数 '+pt+' · '+(k==='big'?'7-13 大':'1-6 小'));
+    }else{
+      roundWin = 0;
+      play('c_eat.mp3', 0.9);
+      showPic(1, 1200);
+      say('猜错，归零', '点数 '+pt+' · '+(k==='big'?'7-13 大':'1-6 小'));
+    }
+    paintDigitLeds();
+    return;
+  }
+
+  if(k === 'all'){
+    play('k_all.mp3', 0.85);
+    initPoint();
+    if(total < 80){ say('金币不足','全押需要 80 分以上'); play('notenough.mp3',0.7); return; }
+    var add = 0;                     /* 实际加押分（个别格已到 99 上限时不足 80） */
+    BETS.forEach(function(b){
+      var cur = bets[b.key] || 0;
+      if(cur >= 99) return;
+      var n = Math.min(10, 99 - cur);
+      bets[b.key] = cur + n; add += n;
+    });
+    if(add === 0){ say('已押满','每个符号都到 99 分上限了'); play('notenough.mp3',0.7); return; }
+    total -= add;
+    saveScore(); paintDigitLeds(); paintBets();
+    say('全押 '+add+' 分', add === 80 ? '每个符号 +10 分' : '余额内按上限押满');
+    return;
+  }
+}
+
+function collect(){
+  if(roundWin > 0){
+    var w = roundWin;
+    total += w; roundWin = 0;
+    play('coin.ogg', 0.85);
+    saveScore(); paintDigitLeds();
+    say('收分 +'+w, '已计入金币');
+  }else{
+    say('请先下注','点下方水果键押分');
+  }
+}
+
+/* ================= 弹窗 ================= */
+var mask = $('mask');
+function dialog(title, bodyHtml, onClose, dense){
+  $('mTitle').textContent = title;
+  $('mBody').innerHTML = bodyHtml
+    + '<div class="scrollhint" id="shint">▾ 可上下滑动查看全部</div>';
+  mask.classList.toggle('dense', !!dense);
+  mask.classList.add('show');
+  mask._cb = onClose || null;
+  $('mBody').scrollTop = 0;
+  updHint();
+}
+/* 内容超过一屏才提示可滑动；滑到底就撤掉提示 */
+function updHint(){
+  var bd = $('mBody'), h = $('shint');
+  if(!h) return;
+  var over = bd.scrollHeight > bd.clientHeight + 2;
+  var atEnd = bd.scrollTop + bd.clientHeight >= bd.scrollHeight - 4;
+  h.classList.toggle('on', over && !atEnd);
+}
+$('mBody').addEventListener('scroll', updHint);
+$('mClose').addEventListener('click', function(){
+  mask.classList.remove('show');
+  if(mask._cb){ var f = mask._cb; mask._cb = null; f(); }
+});
+mask.addEventListener('click', function(e){ if(e.target === mask) $('mClose').click(); });
+
+/* 赔率表（按真机权重池计算） */
+(function(){
+  var cnt={}, agg={};
+  for(var i=0;i<24;i++){
+    var s = SLOT[i].s;
+    cnt[s] = (cnt[s]||0) + 1;
+    if(!agg[s]) agg[s] = {w:0, e:0, odds:{}};
+    agg[s].w += WEIGHT[i];
+    agg[s].e += WEIGHT[i]*SLOT[i].o;
+    agg[s].odds[SLOT[i].o] = (agg[s].odds[SLOT[i].o]||0) + 1;
+  }
+  var html = '<table class="otab"><thead><tr><th>符号</th><th>赔率</th><th>占格</th><th>概率</th><th>期望</th></tr></thead><tbody>';
+  var sumAll = 0;
+  BETS.forEach(function(b){
+    var d = agg[b.key] || {w:0,e:0,odds:{}};
+    var ex = d.e / POOL_N;
+    sumAll += ex;
+    var ods = Object.keys(d.odds).sort(function(x,y){return y-x;}).join('/') || '0';
+    html += '<tr><td class="nm">'+b.name+'</td><td class="od">'+ods+'</td><td>'+(cnt[b.key]||0)+'</td>'
+          + '<td>'+(d.w/POOL_N*100).toFixed(2)+'%</td><td class="ex">'+ex.toFixed(2)+'</td></tr>';
+  });
+  var fw = agg['flower'] ? agg['flower'].w : 0;
+  html += '<tr class="zero"><td class="nm">花格(幸运转)</td><td>0</td><td>'+(cnt['flower']||0)+'</td>'
+        + '<td>'+(fw/POOL_N*100).toFixed(2)+'%</td><td>—</td></tr></tbody></table>';
+
+  /* 幸运格各奖项概率 */
+  var luckCount = {};
+  LUCK.forEach(function(k){ luckCount[k] = (luckCount[k]||0)+1; });
+  var pFlower = fw / POOL_N;
+  var lh = '<table class="otab"><thead><tr>'
+         + '<th style="text-align:left;padding-left:5px">幸运奖项</th>'
+         + '<th>占幸运值</th><th>折合每局</th></tr></thead><tbody>';
+  [27,29,30,28,26,25,24,31,32].forEach(function(k){
+    var pl = luckCount[k] / LUCK_N;
+    lh += '<tr><td class="nm">'+LUCK_INFO[k].n+'</td>'
+        + '<td class="ex">'+(pl*100).toFixed(2)+'%</td>'
+        + '<td style="color:#c9a87e">'+(pl*pFlower*100).toFixed(3)+'%</td></tr>';
+  });
+  lh += '</tbody></table>';
+
+  var note =
+    '<p>① <b>跑灯落点</b>按真机加权池算（'+POOL_N+' 项，不是等概率）。</p>'
+  + '<p>② 只有停在<b>花格</b>（占 '+(pFlower*100).toFixed(2)+'%）才掷幸运值；'
+  + '「折合每局」= 两个概率相乘，就是每转一次的真正机会。</p>'
+  + '<p>③ 原版 App 没有赔率板，所以长期偏玩家；真街机靠主板控盈亏，本玩具不做这层。</p>';
+
+  $('help').addEventListener('click', function(){
+    play('press.mp3', 0.5);
+    dialog('赔率表', '<p style="margin-bottom:8px"><b>一、跑灯落点概率与期望</b></p>' + html
+      + '<p style="margin:12px 0 8px"><b>二、幸运格各奖项概率</b></p>' + lh + note,
+      null, true);
+  });
+})();
+
+/* ================= 界面切换 ================= */
+function screen(id){
+  ['splash','menu','game','rank','about'].forEach(function(s){
+    $(s).classList.toggle('on', s === id);
+  });
+  if(id === 'rank') renderRank();
+}
+
+/* ---- 开机 → 主菜单 ---- */
+var splashT = setTimeout(function(){ screen('menu'); }, 2000);
+$('splash').addEventListener('pointerdown', function(){
+  clearTimeout(splashT); screen('menu');
+});
+
+/* ---- 手机上首次进入：提示"加到桌面"，只提示一次 ---- */
+(function(){
+  try{
+    var ua = navigator.userAgent || '';
+    if(!/Android|iPhone|iPad|iPod|HarmonyOS|Mobile/i.test(ua)) return;   /* 只在手机/平板上提示 */
+    var standalone = false;
+    try{ standalone = window.matchMedia('(display-mode: standalone)').matches; }catch(e){}
+    if(standalone || navigator.standalone === true) return;             /* 已经是 App 形态就不再提示 */
+    try{ if(localStorage.getItem('fruit8090_addhint') === '1') return; }catch(e){}
+    var ios = /iPhone|iPad|iPod/i.test(ua);
+    $('addhintTxt').innerHTML = ios
+      ? '点底部<b>分享</b> → <b>添加到主屏幕</b><br>下次就能像 App 一样全屏打开'
+      : '点右上角 <b>⋮</b> → <b>添加到主屏幕</b><br>下次就能像 App 一样全屏打开';
+    var el = $('addhint');
+    el.classList.add('on');
+    el.addEventListener('click', function(){
+      el.classList.remove('on');
+      try{ localStorage.setItem('fruit8090_addhint', '1'); }catch(e){}
+    });
+  }catch(e){}
+})();
+
+/* ---- 主菜单 ---- */
+$('m_start').addEventListener('click', function(){
+  play('press.mp3', 0.6);
+  dirty = true;
+  screen('game');
+  paintDigitLeds(); paintBets(); paintRing();
+  setNum(ledRnd, 0);
+  say('请下注','点下方水果键押分 · 点金币数字可设定分数');
+});
+$('m_rank').addEventListener('click', function(){ play('press.mp3', 0.6); screen('rank'); });
+$('m_about').addEventListener('click', function(){ play('press.mp3', 0.6); screen('about'); });
+$('m_help').addEventListener('click', function(){ play('press.mp3', 0.6); $('help').click(); });
+$('m_quit').addEventListener('click', function(){
+  play('press.mp3', 0.6);
+  if(dirty){ pushRank(total); dirty = false; }
+  dialog('退出游戏',
+    '<p>本局成绩已存入排行榜：<b>'+total+'</b> 金币。</p>'
+  + '<p style="color:#c9a87e">本页可以直接关闭浏览器标签页。</p>', function(){
+      screen('menu');
+    });
+});
+$('m_coin').addEventListener('click', function(){
+  play('press.mp3', 0.6);
+  if(total + roundWin <= 10){
+    total += 100; saveScore(); paintDigitLeds();
+    dialog('获取金币', '<p>已补发 <b>100</b> 金币，当前金币 <b>'+total+'</b>。</p>');
+  }else{
+    dialog('获取金币',
+      '<p>您当前的金币数大于 10 个，只有当金币总数少于 10 个时才可以获取额外的金币！！</p>'
+    + '<p>请您继续游戏，当金币不足时我们会及时通知您！！</p><p>祝您好运！！</p>');
+  }
+});
+
+/* ---- 排行榜 / 关于 返回 ---- */
+$('r_back').addEventListener('click', function(){ play('press.mp3',0.6); screen('menu'); });
+$('a_back').addEventListener('click', function(){ play('press.mp3',0.6); screen('menu'); });
+$('r_clear').addEventListener('click', function(){
+  play('press.mp3',0.6);
+  dialog('删除记录', '<p>是否确定要删除全部历史记录？</p>', function(){
+    try{ localStorage.removeItem('fruit8090_rank'); }catch(e){}
+    renderRank();
+  });
+});
+
+/* ---- 点金币数字：手动设定分数（王总要的「分数可以自己添加」） ---- */
+$('creditTap').addEventListener('click', function(){
+    play('press.mp3', 0.5);
+    dialog('设定金币',
+      '<p>当前金币：<b>'+total+'</b>　中奖区：<b>'+roundWin+'</b></p>'
+    + '<p style="color:#c9a87e">这是给自己的怀旧玩具，想加多少加多少。</p>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0 2px">'
+    + '<button class="bt" data-add="100">+100</button>'
+    + '<button class="bt" data-add="500">+500</button>'
+    + '<button class="bt" data-add="1000">+1000</button></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">'
+    + '<button class="bt" data-set="0">清零</button>'
+    + '<button class="bt" data-set="500">重置为 500</button></div>');
+    $('mBody').querySelectorAll('button[data-add],button[data-set]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var a = b.getAttribute('data-add'), s = b.getAttribute('data-set');
+        if(a) total += parseInt(a,10);
+        if(s) total = parseInt(s,10);
+        saveScore(); paintDigitLeds();
+        dialog('设定金币', '<p>已设定。当前金币：<b>'+total+'</b></p>');
+      });
+    });
+});
+
+/* ================= 排行榜渲染 ================= */
+function readRank(){
+  try{
+    var v = localStorage.getItem('fruit8090_rank');
+    return v ? JSON.parse(v) : [];
+  }catch(e){ return []; }
+}
+function writeRank(a){
+  try{ localStorage.setItem('fruit8090_rank', JSON.stringify(a)); }catch(e){}
+}
+function pushRank(score){
+  var d = new Date();
+  var t = d.getFullYear()+'/'+pad2(d.getMonth()+1)+'/'+pad2(d.getDate())+' '
+        + pad2(d.getHours())+':'+pad2(d.getMinutes())+':'+pad2(d.getSeconds());
+  var a = readRank();
+  a.push({n:'Sam', s:score, t:t});     /* 原机 MainActivity.saveScore() 写死名字 Sam */
+  a.sort(function(x,y){ return y.s - x.s; });
+  writeRank(a.slice(0,50));
+}
+function pad2(n){ return (n<10?'0':'')+n; }
+function renderRank(){
+  var a = readRank();
+  var host = $('rankLst');
+  if(!a.length){ host.innerHTML = '<div class="rempty">还没有记录<br>在游戏里点右上角「退出」会存一次成绩</div>'; return; }
+  var medals = ['img/medal_gold.png?v=20261007b','img/medal_silver.png?v=20261007b','img/medal_bronze.png?v=20261007b'];
+  var h = '';
+  a.slice(0,20).forEach(function(r, i){
+    var md = i < 3 ? '<img class="md" src="'+medals[i]+'" alt="">' : '<span class="rk">'+(i+1)+'</span>';
+    h += '<div class="ritem">' + md
+       + '<img class="av" src="img/avatar_'+(i%10)+'.png'+V+'" alt="">'
+       + '<div class="nm">'+r.n+'<i>'+r.t+'</i></div>'
+       + '<div class="sc">'+r.s+'</div></div>';
+  });
+  host.innerHTML = h;
+}
+
+/* 退出游戏时保存成绩（对应原机 onKeyDown 保存逻辑） */
+var dirty = false;
+window.addEventListener('beforeunload', function(){
+  if(dirty){ pushRank(total); dirty = false; }
+});
+
+/* ================= 启动 ================= */
+fit();
+setTimeout(fit, 120);
+window.addEventListener('load', function(){ fit(); setTimeout(fit, 120); });
+paintDigitLeds(); paintBets(); paintRing();
+setNum(ledRnd, 0);
+})();
+</script>
+</body>
+</html>
